@@ -16,5 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   conduct documents, security policy, roadmap index, uv environment,
   Black/Ruff/Mypy/Pytest configuration, CI workflow, pre-commit hook, and
   smoke tests.
+- Phase 2 — core architecture: constants and exception hierarchy, layered
+  configuration, logging with secret redaction and scan-context binding,
+  async TTL cache, async SQLite connection layer, fail-soft plugin loader,
+  priority task scheduler, asyncio worker pool, scan engine facade, and
+  unit tests for every component.
 
 [Unreleased]: https://keepachangelog.com/en/1.1.0/

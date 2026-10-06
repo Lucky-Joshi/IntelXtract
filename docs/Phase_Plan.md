@@ -50,7 +50,7 @@ sub-phases that are small enough to implement and verify independently.
 |-------|----------------------------|-----------|------|--------|
 | 0     | Planning                   | A         | S    | [x]    |
 | 1     | Project Foundation         | A         | M    | [x]    |
-| 2     | Core Architecture          | B         | L    | [ ]    |
+| 2     | Core Architecture          | B         | L    | [x]    |
 | 3     | Database                   | B         | M    | [ ]    |
 | 4     | CLI                        | B         | M    | [ ]    |
 | 5     | GUI                        | C         | XL   | [ ]    |
@@ -149,24 +149,24 @@ the initial commit.
 **Objective:** Framework only — engine, config, logging, cache, scheduler,
 worker pool, plugin loader. No OSINT modules, no GUI.
 
-- [ ] S2.1 `core/constants.py` + `core/exceptions.py` — target types, severities,
+- [x] S2.1 `core/constants.py` + `core/exceptions.py` — target types, severities,
       custom exception hierarchy
-- [ ] S2.2 `core/config.py` — layered settings (defaults → `config/settings.json`
+- [x] S2.2 `core/config.py` — layered settings (defaults → `config/settings.json`
       → env vars), load/save/get with dotted keys
-- [ ] S2.3 `core/logger.py` — console + rotating file logging in `logs/`,
+- [x] S2.3 `core/logger.py` — console + rotating file logging in `logs/`,
       levels from config, scan-id context binding
-- [ ] S2.4 `core/cache.py` — async TTL cache with size cap and per-key expiry
-- [ ] S2.5 `database/connection.py` — async SQLite connection factory
+- [x] S2.4 `core/cache.py` — async TTL cache with size cap and per-key expiry
+- [x] S2.5 `database/connection.py` — async SQLite connection factory
       (`aiosqlite`), open/close helpers (schema arrives in Phase 3)
-- [ ] S2.6 `core/plugin_loader.py` — `PluginBase` protocol + directory
+- [x] S2.6 `core/plugin_loader.py` — `PluginBase` protocol + directory
       discovery + enable/disable registry
-- [ ] S2.7 `core/scheduler.py` — FIFO task queue with priorities and status
+- [x] S2.7 `core/scheduler.py` — FIFO task queue with priorities and status
       tracking (queued/running/done/failed)
-- [ ] S2.8 `core/worker_pool.py` — asyncio worker pool: concurrency limit,
+- [x] S2.8 `core/worker_pool.py` — asyncio worker pool: concurrency limit,
       cancellation, per-task timeout, result collection
-- [ ] S2.9 `core/engine.py` — orchestrator facade wiring input → plan → queue
+- [x] S2.9 `core/engine.py` — orchestrator facade wiring input → plan → queue
       → pool → results (pipeline runs with zero modules registered)
-- [ ] S2.10 Unit tests for each component (mock I/O, no network)
+- [x] S2.10 Unit tests for each component (mock I/O, no network)
 
 **Deliverables:** `core/*`, `database/connection.py`, tests.
 
