@@ -5,7 +5,7 @@ from typing import Any
 
 from core.constants import TaskState
 from core.exceptions import TaskTimeoutError
-from core.scheduler import TaskScheduler
+from core.scheduler import Task, TaskScheduler
 from core.worker_pool import WorkerPool
 
 
@@ -125,3 +125,32 @@ async def test_peak_in_flight_metric() -> None:
     pool = WorkerPool(sched, concurrency=3, default_timeout=5.0)
     await pool.run()
     assert 1 <= pool.peak_in_flight <= 3
+
+
+async def test_on_task_done_hook_fires_for_outcomes() -> None:
+    sched = TaskScheduler()
+    sched.submit(_value(1), name="ok")
+    sched.submit(_boom(), name="bad")
+    seen: list[str] = []
+    pool = WorkerPool(
+        sched,
+        concurrency=2,
+        default_timeout=5.0,
+        on_task_done=lambda task: seen.append(task.name),
+    )
+    stats = await pool.run()
+    assert stats.done == 1
+    assert stats.failed == 1
+    assert sorted(seen) == ["bad", "ok"]
+
+
+async def test_on_task_done_hook_errors_are_isolated() -> None:
+    sched = TaskScheduler()
+    sched.submit(_value(1), name="ok")
+
+    def _bad_hook(task: Task) -> None:
+        raise RuntimeError("hook exploded")
+
+    pool = WorkerPool(sched, concurrency=1, default_timeout=5.0, on_task_done=_bad_hook)
+    stats = await pool.run()
+    assert stats.done == 1

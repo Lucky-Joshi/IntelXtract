@@ -346,19 +346,64 @@ class ScanRepository:
         return _scan_row(row) if row is not None else None
 
     async def list(
-        self, *, limit: int = 50, target_id: int | None = None
+        self,
+        *,
+        limit: int = 50,
+        target_id: int | None = None,
+        status: str | None = None,
     ) -> list[ScanRecord]:
-        """Recent scans, optionally filtered by target."""
-        if target_id is None:
-            rows = await self._db.fetchall(
-                "SELECT * FROM scans ORDER BY id DESC LIMIT ?", (limit,)
-            )
-        else:
-            rows = await self._db.fetchall(
-                "SELECT * FROM scans WHERE target_id = ? ORDER BY id DESC LIMIT ?",
-                (target_id, limit),
-            )
+        """Recent scans, optionally filtered by target and/or status."""
+        sql = "SELECT * FROM scans WHERE 1=1"
+        params: list[Any] = []
+        if target_id is not None:
+            sql += " AND target_id = ?"
+            params.append(target_id)
+        if status is not None:
+            sql += " AND status = ?"
+            params.append(status)
+        sql += " ORDER BY id DESC LIMIT ?"
+        params.append(limit)
+        rows = await self._db.fetchall(sql, params)
         return [_scan_row(r) for r in rows]
+
+    async def list_detailed(
+        self,
+        *,
+        limit: int = 50,
+        target_value: str | None = None,
+        status: str | None = None,
+    ) -> Sequence[tuple[ScanRecord, TargetRecord]]:
+        """Recent scans joined with their target rows (newest first)."""
+        sql = (
+            "SELECT scans.*, targets.value AS target_value,"
+            " targets.type AS target_type, targets.created_at AS target_created"
+            " FROM scans JOIN targets ON targets.id = scans.target_id"
+            " WHERE 1=1"
+        )
+        params: list[Any] = []
+        if target_value is not None:
+            sql += " AND targets.value = ?"
+            params.append(target_value)
+        if status is not None:
+            sql += " AND scans.status = ?"
+            params.append(status)
+        sql += " ORDER BY scans.id DESC LIMIT ?"
+        params.append(limit)
+        rows = await self._db.fetchall(sql, params)
+        joined: list[tuple[ScanRecord, TargetRecord]] = []
+        for row in rows:
+            joined.append(
+                (
+                    _scan_row(row),
+                    TargetRecord(
+                        id=int(row["target_id"]),
+                        value=str(row["target_value"]),
+                        type=str(row["target_type"]),
+                        created_at=str(row["target_created"]),
+                    ),
+                )
+            )
+        return joined
 
     async def latest_for_target(self, target_id: int) -> ScanRecord | None:
         """Most recent scan for a target."""

@@ -18,13 +18,41 @@ from core.config import Config
 from core.constants import ModuleStatus, ScanMode, ScanStatus, TargetType, TaskState
 from core.exceptions import ScanError, TaskTimeoutError, ValidationError
 from core.logger import get_logger, scan_context
-from core.scheduler import TaskScheduler
+from core.scheduler import Task, TaskScheduler
 from core.worker_pool import WorkerPool
 
 _log = get_logger(__name__)
 
 Classifier = Callable[[str], TargetType]
 ResultSink = Callable[["ScanResult"], Awaitable[None]]
+ModuleDoneCallback = Callable[["ModuleRun"], None]
+
+
+def task_to_module_run(name: str, task: Task) -> ModuleRun:
+    """Map a finished scheduler task onto its module run outcome."""
+    duration = task.duration or 0.0
+    if task.state is TaskState.DONE:
+        return ModuleRun(
+            module=name,
+            status=ModuleStatus.SUCCESS,
+            duration=duration,
+            result=task.result,
+        )
+    if task.state is TaskState.CANCELLED:
+        return ModuleRun(module=name, status=ModuleStatus.CANCELLED, duration=duration)
+    if isinstance(task.error, TaskTimeoutError):
+        return ModuleRun(
+            module=name,
+            status=ModuleStatus.TIMEOUT,
+            duration=duration,
+            error=str(task.error),
+        )
+    return ModuleRun(
+        module=name,
+        status=ModuleStatus.FAILED,
+        duration=duration,
+        error=str(task.error) if task.error else "unknown error",
+    )
 
 
 @runtime_checkable
@@ -138,6 +166,7 @@ class ScanEngine:
         modules: Sequence[ScanModule] | None = None,
         classifier: Classifier | None = None,
         result_sink: ResultSink | None = None,
+        on_module_done: ModuleDoneCallback | None = None,
         concurrency: int | None = None,
         timeout: float | None = None,
     ) -> None:
@@ -148,6 +177,7 @@ class ScanEngine:
         )
         self._classifier = classifier or _default_classifier
         self._result_sink = result_sink
+        self._on_module_done = on_module_done
         self._concurrency = concurrency or int(config.get("scan.max_workers", 8))
         self._timeout = (
             timeout
@@ -219,6 +249,9 @@ class ScanEngine:
                 scheduler,
                 concurrency=max(self._concurrency, 1),
                 default_timeout=self._timeout,
+                on_task_done=(
+                    self._on_module_progress if self._on_module_done else None
+                ),
             )
             try:
                 await pool.run()
@@ -250,6 +283,12 @@ class ScanEngine:
     async def cancel(self) -> None:
         """Placeholder for GUI-initiated cancellation (wired in Phase 5)."""
         raise NotImplementedError("cancellation lands with the GUI bridge (Phase 5)")
+
+    def _on_module_progress(self, task: Task) -> None:
+        """Live per-module progress seam consumed by CLI/GUI."""
+        if self._on_module_done is None:
+            return
+        self._on_module_done(task_to_module_run(task.name, task))
 
     @staticmethod
     def _validate_target(target: str) -> str:
@@ -326,44 +365,10 @@ class ScanEngine:
                     )
                 )
                 continue
-            duration = task.duration or 0.0
-            if task.state is TaskState.DONE:
-                runs.append(
-                    ModuleRun(
-                        module=module.name,
-                        status=ModuleStatus.SUCCESS,
-                        duration=duration,
-                        result=task.result,
-                    )
-                )
-                if task.result is not None:
-                    findings.append({"module": module.name, "data": task.result})
-            elif task.state is TaskState.CANCELLED:
-                runs.append(
-                    ModuleRun(
-                        module=module.name,
-                        status=ModuleStatus.CANCELLED,
-                        duration=duration,
-                    )
-                )
-            elif isinstance(task.error, TaskTimeoutError):
-                runs.append(
-                    ModuleRun(
-                        module=module.name,
-                        status=ModuleStatus.TIMEOUT,
-                        duration=duration,
-                        error=str(task.error),
-                    )
-                )
-            else:
-                runs.append(
-                    ModuleRun(
-                        module=module.name,
-                        status=ModuleStatus.FAILED,
-                        duration=duration,
-                        error=str(task.error) if task.error else "unknown error",
-                    )
-                )
+            run = task_to_module_run(module.name, task)
+            runs.append(run)
+            if run.status is ModuleStatus.SUCCESS and run.result is not None:
+                findings.append({"module": module.name, "data": run.result})
         runs.sort(key=lambda r: r.module)
         return ScanResult(
             scan_id=scan_id,

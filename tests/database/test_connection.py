@@ -96,13 +96,21 @@ async def test_transaction_rollback_on_error() -> None:
     await db.close()
 
 
-async def test_file_database_created_on_disk(tmp_path: Path) -> None:
-    path = tmp_path / "sub" / "test.db"
+async def test_writes_survive_close_and_reopen(tmp_path: Path) -> None:
+    path = tmp_path / "durable.db"
     db = Database(path)
     await db.connect()
-    await db.execute("CREATE TABLE t (id INTEGER)")
+    await db.execute("CREATE TABLE t (id INTEGER PRIMARY KEY, v TEXT NOT NULL)")
+    await db.execute("INSERT INTO t (v) VALUES (?)", ("persisted",))
     await db.close()
-    assert path.exists()
+    reopened = Database(path)
+    await reopened.connect()
+    try:
+        row = await reopened.fetchone("SELECT v FROM t WHERE id = 1")
+        assert row is not None
+        assert row["v"] == "persisted"
+    finally:
+        await reopened.close()
 
 
 async def test_open_database_from_config(tmp_path: Path) -> None:

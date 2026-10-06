@@ -52,7 +52,7 @@ sub-phases that are small enough to implement and verify independently.
 | 1     | Project Foundation         | A         | M    | [x]    |
 | 2     | Core Architecture          | B         | L    | [x]    |
 | 3     | Database                   | B         | M    | [x]    |
-| 4     | CLI                        | B         | M    | [ ]    |
+| 4     | CLI                        | B         | M    | [x]    |
 | 5     | GUI                        | C         | XL   | [ ]    |
 | 6     | Input Engine               | D         | S    | [ ]    |
 | 7     | Module System              | D         | M    | [ ]    |
@@ -204,19 +204,19 @@ round-trip tests; no table access outside the repository layer.
 
 **Objective:** Typer-based command-line interface.
 
-- [ ] S4.1 CLI skeleton — `cli/main.py`, app group, `--version`, `--verbose`,
+- [x] S4.1 CLI skeleton — `cli/main.py`, app group, `--version`, `--verbose`,
       entry point aliasable as `intelxtract`
-- [ ] S4.2 `scan` — target argument, `--mode quick|deep|custom`,
+- [x] S4.2 `scan` — target argument, `--mode quick|deep|custom`,
       `--modules` filter, `--format`, live rich progress from worker pool
-- [ ] S4.3 `report` — regenerate/export reports for a past scan id
+- [x] S4.3 `report` — regenerate/export reports for a past scan id
       (`html|pdf|json|csv|md`; formats land in Phase 19, stubs return JSON)
-- [ ] S4.4 `history` — list scans, show scan detail, filter by target/status
-- [ ] S4.5 `config` — `get` / `set` / `list` / `path` on dotted config keys
-- [ ] S4.6 `plugin` — `list` / `enable` / `disable` / `info`
-- [ ] S4.7 `doctor` — Python version, venv detection, DB writable, config
+- [x] S4.4 `history` — list scans, show scan detail, filter by target/status
+- [x] S4.5 `config` — `get` / `set` / `list` / `path` on dotted config keys
+- [x] S4.6 `plugin` — `list` / `enable` / `disable` / `info`
+- [x] S4.7 `doctor` — Python version, venv detection, DB writable, config
       valid, network reachability probe, dependency versions
-- [ ] S4.8 `update` — compare installed version against PyPI (informational)
-- [ ] S4.9 Tests — `typer.testing.CliRunner` coverage for every command
+- [x] S4.8 `update` — compare installed version against PyPI (informational)
+- [x] S4.9 Tests — `typer.testing.CliRunner` coverage for every command
 
 **Deliverables:** `cli/` package, console entry point, CLI tests.
 

@@ -21,6 +21,7 @@ select = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]  # asserts are expected in tests
+"cli/**" = ["B008"]  # typer/click option defaults are idiomatic
 
 [tool.ruff.lint.isort]
 known-first-party = ["app", "cli", "core", "database", "gui", "modules", "plugins", "reports"]

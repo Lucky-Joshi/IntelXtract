@@ -36,6 +36,7 @@ DEFAULTS: dict[str, Any] = {
         "cache_dir": "cache",
         "exports_dir": "exports",
         "db_path": "~/.local/share/intelxtract/intelxtract.db",
+        "plugins_dir": "plugins",
     },
     "scan": {
         "default_mode": "quick",

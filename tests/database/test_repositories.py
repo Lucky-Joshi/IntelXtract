@@ -163,11 +163,40 @@ async def test_scan_list_filters_by_target_and_stats(
     assert [s.uuid for s in all_scans] == ["s3", "s2", "s1"]
     only_t1 = await repos.scans.list(target_id=t1.id)
     assert [s.uuid for s in only_t1] == ["s3", "s1"]
+    by_status = await repos.scans.list(status="failed")
+    assert [s.uuid for s in by_status] == ["s2"]
     latest = await repos.scans.latest_for_target(t1.id)
     assert latest is not None
     assert latest.uuid == "s3"
     stats = await repos.scans.stats()
     assert stats == {"completed": 2, "failed": 1}
+
+
+async def test_scan_list_detailed_joins_targets(repos: Repositories) -> None:
+    t1 = await repos.targets.get_or_create("one.com", "domain")
+    t2 = await repos.targets.get_or_create("two.com", "domain")
+    await repos.scans.create(
+        target_id=t1.id,
+        uuid="d1",
+        mode="quick",
+        status="completed",
+        started_at=utc_now(),
+    )
+    await repos.scans.create(
+        target_id=t2.id,
+        uuid="d2",
+        mode="deep",
+        status="failed",
+        started_at=utc_now(),
+    )
+    joined = await repos.scans.list_detailed()
+    assert [scan.uuid for scan, _tgt in joined] == ["d2", "d1"]
+    assert joined[0][1].value == "two.com"
+    assert joined[0][1].type == "domain"
+    only_failed = await repos.scans.list_detailed(status="failed")
+    assert [scan.uuid for scan, _tgt in only_failed] == ["d2"]
+    by_target = await repos.scans.list_detailed(target_value="one.com")
+    assert [scan.uuid for scan, _tgt in by_target] == ["d1"]
 
 
 # --- findings ----------------------------------------------------------------

@@ -25,7 +25,12 @@ def _resolve_path(raw: str) -> str:
 
 
 class Database:
-    """Thin async wrapper over a single SQLite connection."""
+    """Thin async wrapper over a single SQLite connection.
+
+    Connections run in autocommit mode (``isolation_level=None``) so plain
+    ``execute`` writes are durable immediately; batched work uses
+    :meth:`transaction` for explicit BEGIN/COMMIT/ROLLBACK.
+    """
 
     def __init__(self, path: Path | str = ":memory:") -> None:
         self._path = str(path)
@@ -53,7 +58,7 @@ class Database:
         if self._path != ":memory:":
             await asyncio.to_thread(self._prepare_parent)
         try:
-            self._conn = await aiosqlite.connect(self._path)
+            self._conn = await aiosqlite.connect(self._path, isolation_level=None)
         except sqlite3.Error as exc:
             raise DatabaseError(f"cannot open database {self._path}: {exc}") from exc
         self._conn.row_factory = sqlite3.Row

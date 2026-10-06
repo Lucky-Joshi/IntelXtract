@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# IntelXtract CLI entry point (aliasable as `intelxtract`).
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ -x "$ROOT/.venv/bin/python" ]]; then
+  exec "$ROOT/.venv/bin/python" -m cli "$@"
+fi
+exec python3 -m cli "$@"

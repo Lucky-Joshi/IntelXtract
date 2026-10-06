@@ -28,5 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   result-sink persistence, plugin metadata sync, and round-trip tests on
   temp databases. Engine scan timestamps now use wall clock for
   persistence.
+- Phase 4 — CLI: Typer-based interface with `scan`, `report`, `history`,
+  `config`, `plugin`, `doctor`, and `update` commands; `python -m cli` and
+  `scripts/intelxtract` entry points; engine/worker-pool completion hooks
+  (`on_module_done`, `on_task_done`); `ScanRepository.list`/`list_detailed`;
+  SQLite connections now run in autocommit so writes survive process exit;
+  CLI test suite via `typer.testing.CliRunner`.
 
 [Unreleased]: https://keepachangelog.com/en/1.1.0/

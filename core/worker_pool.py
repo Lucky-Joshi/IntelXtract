@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from core.constants import TaskState
@@ -17,6 +18,8 @@ from core.logger import get_logger
 from core.scheduler import Task, TaskScheduler
 
 _log = get_logger(__name__)
+
+TaskDoneCallback = Callable[[Task], None]
 
 
 @dataclass(slots=True)
@@ -39,12 +42,14 @@ class WorkerPool:
         *,
         concurrency: int = 8,
         default_timeout: float | None = 30.0,
+        on_task_done: TaskDoneCallback | None = None,
     ) -> None:
         if concurrency < 1:
             raise ValueError("concurrency must be >= 1")
         self._scheduler = scheduler
         self._concurrency = concurrency
         self._default_timeout = default_timeout
+        self._on_task_done = on_task_done
         self._workers: list[asyncio.Task[None]] = []
         self._in_flight = 0
         self._peak_in_flight = 0
@@ -106,15 +111,28 @@ class WorkerPool:
         except TimeoutError:
             error = TaskTimeoutError(f"task {task.id!r} timed out after {timeout}s")
             self._scheduler.mark_failed(task, error)
+            self._notify(task)
             _log.warning("task %s timed out after %ss", task.id, timeout)
         except asyncio.CancelledError:
             self._scheduler.mark_cancelled(task)
+            self._notify(task)
             raise
         except Exception as exc:
             self._scheduler.mark_failed(task, exc)
+            self._notify(task)
             _log.warning("task %s failed: %s", task.id, exc)
         else:
             self._scheduler.mark_done(task, result)
-            _log.debug("worker %s finished task %s", index, task.id)
+            self._notify(task)
+            _log.debug("worker %s finished task %s", index, task.name)
         finally:
             self._in_flight -= 1
+
+    def _notify(self, task: Task) -> None:
+        """Invoke the completion hook; callback errors never fail a worker."""
+        if self._on_task_done is None:
+            return
+        try:
+            self._on_task_done(task)
+        except Exception as exc:
+            _log.debug("on_task_done callback failed for %s: %s", task.name, exc)

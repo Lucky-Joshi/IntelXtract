@@ -9,7 +9,7 @@ import pytest
 from core.cache import AsyncTTLCache
 from core.config import Config
 from core.constants import ModuleStatus, ScanStatus, TargetType
-from core.engine import ModuleContext, ScanEngine, ScanResult
+from core.engine import ModuleContext, ModuleRun, ScanEngine, ScanResult
 from core.exceptions import ValidationError
 
 
@@ -190,3 +190,39 @@ async def test_result_to_dict_is_serializable(tmp_path: Path) -> None:
     payload = result.to_dict()
     assert json.loads(json.dumps(payload))["target"] == "example.com"
     assert payload["runs"][0]["status"] == "success"
+
+
+async def test_on_module_done_receives_live_outcomes(tmp_path: Path) -> None:
+    events: list[ModuleRun] = []
+    modules = [
+        FakeModule(name="alpha", result={"ok": 1}),
+        FakeModule(name="beta", error=RuntimeError("boom")),
+    ]
+    engine = _engine(tmp_path, modules=modules, on_module_done=events.append)
+    result = await engine.scan("example.com")
+    assert sorted(event.module for event in events) == ["alpha", "beta"]
+    live = {event.module: event.status for event in events}
+    assert live["alpha"] is ModuleStatus.SUCCESS
+    assert live["beta"] is ModuleStatus.FAILED
+    final = {run.module: run.status for run in result.runs}
+    assert final == live
+
+
+async def test_on_module_done_skipped_modules_not_reported(
+    tmp_path: Path,
+) -> None:
+    events: list[ModuleRun] = []
+    modules = [
+        FakeModule(name="ok", target_types=(TargetType.DOMAIN,)),
+        FakeModule(name="ip_only", target_types=(TargetType.IP,)),
+    ]
+    engine = _engine(
+        tmp_path,
+        modules=modules,
+        on_module_done=events.append,
+        classifier=lambda _t: TargetType.DOMAIN,
+    )
+    result = await engine.scan("example.com")
+    assert [event.module for event in events] == ["ok"]
+    skipped = next(r for r in result.runs if r.module == "ip_only")
+    assert skipped.status is ModuleStatus.SKIPPED
