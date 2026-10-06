@@ -49,7 +49,7 @@ sub-phases that are small enough to implement and verify independently.
 | Phase | Name                       | Milestone | Size | Status |
 |-------|----------------------------|-----------|------|--------|
 | 0     | Planning                   | A         | S    | [x]    |
-| 1     | Project Foundation         | A         | M    | [ ]    |
+| 1     | Project Foundation         | A         | M    | [x]    |
 | 2     | Core Architecture          | B         | L    | [ ]    |
 | 3     | Database                   | B         | M    | [ ]    |
 | 4     | CLI                        | B         | M    | [ ]    |
@@ -117,23 +117,23 @@ font names); folder skeleton matches the roadmap structure.
 
 **Objective:** Repository files, uv environment, tooling, CI, initial commit.
 
-- [ ] S1.1 Repo documents — `README.md`, `LICENSE` (GPL v3 full text),
+- [x] S1.1 Repo documents — `README.md`, `LICENSE` (GPL v3 full text),
       `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant),
       `CHANGELOG.md` (Keep a Changelog), `SECURITY.md`, `ROADMAP.md`
-- [ ] S1.2 `.gitignore` — Python, venv, `logs/`, `cache/`, `exports/`,
+- [x] S1.2 `.gitignore` — Python, venv, `logs/`, `cache/`, `exports/`,
       `__pycache__`, IDE/OS noise
-- [ ] S1.3 Environment — `uv venv .venv`; `requirements.txt` (runtime:
+- [x] S1.3 Environment — `uv venv .venv`; `requirements.txt` (runtime:
       `aiohttp`, `typer`, `rich`, `jinja2`); `requirements-dev.txt`
       (`ruff`, `black`, `mypy`, `pytest`, `pytest-asyncio`); install both
-- [ ] S1.4 Tool config — `pyproject.toml` with `[tool.ruff]`, `[tool.black]`,
+- [x] S1.4 Tool config — `pyproject.toml` with `[tool.ruff]`, `[tool.black]`,
       `[tool.mypy]`, `[tool.pytest.ini_options]` only (no `[project]` table)
-- [ ] S1.5 Folder skeleton — `app/ core/ modules/ plugins/ database/ gui/ cli/
+- [x] S1.5 Folder skeleton — `app/ core/ modules/ plugins/ database/ gui/ cli/
       reports/ templates/ exports/ assets/ config/ tests/ scripts/ examples/`
-- [ ] S1.6 CI — `.github/workflows/ci.yml` (ruff, black, mypy, pytest on
+- [x] S1.6 CI — `.github/workflows/ci.yml` (ruff, black, mypy, pytest on
       Python 3.13/3.14; dormant until a remote exists)
-- [ ] S1.7 Smoke test — `tests/test_sanity.py`; full gate green:
+- [x] S1.7 Smoke test — `tests/test_sanity.py`; full gate green:
       `ruff check . && black --check . && mypy . && pytest`
-- [ ] S1.8 Git init + single initial commit (no remote, no push)
+- [x] S1.8 Git init + single initial commit (no remote, no push)
 
 **Deliverables:** repo docs, toolchain, venv, CI config, first commit.
 
