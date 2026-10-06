@@ -21,5 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   async TTL cache, async SQLite connection layer, fail-soft plugin loader,
   priority task scheduler, asyncio worker pool, scan engine facade, and
   unit tests for every component.
+- Phase 3 — database layer: full schema (`targets`, `scans`, `findings`,
+  `reports`, `plugins`, `api_keys`, `logs`, `history`, `settings`) with
+  documented design in `docs/Database_Schema.md`, forward-only migration
+  runner, typed repository layer with frozen record dataclasses, engine
+  result-sink persistence, plugin metadata sync, and round-trip tests on
+  temp databases. Engine scan timestamps now use wall clock for
+  persistence.
 
 [Unreleased]: https://keepachangelog.com/en/1.1.0/

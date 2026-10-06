@@ -26,7 +26,7 @@ jobs:
         run: |
           uv venv .venv --python ${{ matrix.python-version }}
           uv pip install -r requirements.txt -r requirements-dev.txt
-          echo "$PWD/.venv/bin" >> "$GITHUB_ENV"
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Ruff
         run: ruff check .

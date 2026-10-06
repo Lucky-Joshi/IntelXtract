@@ -86,6 +86,13 @@ class Database:
         except sqlite3.Error as exc:
             raise DatabaseError(f"query failed: {exc}") from exc
 
+    async def executescript(self, sql: str) -> None:
+        """Execute a multi-statement SQL script (used by migrations)."""
+        try:
+            await self.conn.executescript(sql)
+        except sqlite3.Error as exc:
+            raise DatabaseError(f"script failed: {exc}") from exc
+
     async def fetchone(self, sql: str, params: Params = ()) -> sqlite3.Row | None:
         """Return the first row or ``None``."""
         cursor = await self.execute(sql, params)

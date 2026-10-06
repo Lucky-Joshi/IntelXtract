@@ -51,7 +51,7 @@ sub-phases that are small enough to implement and verify independently.
 | 0     | Planning                   | A         | S    | [x]    |
 | 1     | Project Foundation         | A         | M    | [x]    |
 | 2     | Core Architecture          | B         | L    | [x]    |
-| 3     | Database                   | B         | M    | [ ]    |
+| 3     | Database                   | B         | M    | [x]    |
 | 4     | CLI                        | B         | M    | [ ]    |
 | 5     | GUI                        | C         | XL   | [ ]    |
 | 6     | Input Engine               | D         | S    | [ ]    |
@@ -181,15 +181,15 @@ empty scan pipeline and returns a structured result object.
 
 **Objective:** Schema, migrations, and repository layer.
 
-- [ ] S3.1 Schema design doc — expand `docs/Database_Schema.md` with columns,
+- [x] S3.1 Schema design doc — expand `docs/Database_Schema.md` with columns,
       types, indexes, foreign keys, relationships (ER diagram in text)
-- [ ] S3.2 `database/schema.sql` — tables: `targets`, `scans`, `findings`,
+- [x] S3.2 `database/schema.sql` — tables: `targets`, `scans`, `findings`,
       `reports`, `plugins`, `api_keys`, `logs`, `history`, `settings`
-- [ ] S3.3 `database/migrations.py` — versioned migration runner
+- [x] S3.3 `database/migrations.py` — versioned migration runner
       (`schema_version` table, forward migrations only for now)
-- [ ] S3.4 `database/repositories.py` — typed CRUD for targets/scans/findings/
+- [x] S3.4 `database/repositories.py` — typed CRUD for targets/scans/findings/
       reports/settings (used by engine, CLI, GUI)
-- [ ] S3.5 Tests — create/migrate/query round-trip on a temp database
+- [x] S3.5 Tests — create/migrate/query round-trip on a temp database
 
 **Deliverables:** schema, migration runner, repositories, tests.
 

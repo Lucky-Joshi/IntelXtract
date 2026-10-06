@@ -194,7 +194,7 @@ class ScanEngine:
         scan_mode = ScanMode(mode)
         scan_id = uuid.uuid4().hex[:12]
         target_type = self._classifier(cleaned)
-        started = time.monotonic()
+        started = time.time()
 
         with scan_context(scan_id):
             _log.info(
@@ -372,7 +372,7 @@ class ScanEngine:
             mode=mode,
             status=ScanStatus.COMPLETED,
             started_at=started,
-            finished_at=time.monotonic(),
+            finished_at=time.time(),
             runs=runs,
             findings=findings,
         )
