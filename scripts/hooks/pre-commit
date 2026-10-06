@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# IntelXtract pre-commit hook: lint + format check (docs/git_workflow.md).
+# Installed into .git/hooks/ at repository initialization; source of truth
+# for edits is this file (scripts/hooks/pre-commit).
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+if [ -x ".venv/bin/ruff" ]; then
+  RUFF=".venv/bin/ruff"
+  BLACK=".venv/bin/black"
+else
+  RUFF="$(command -v ruff || true)"
+  BLACK="$(command -v black || true)"
+fi
+
+if [ -z "$RUFF" ] || [ -z "$BLACK" ]; then
+  echo "pre-commit: ruff/black not found." >&2
+  echo "  Install dev deps: uv pip install -r requirements-dev.txt" >&2
+  exit 1
+fi
+
+echo "pre-commit: ruff check ..."
+"$RUFF" check . || exit 1
+
+echo "pre-commit: black --check ..."
+"$BLACK" --check . || exit 1
+
+echo "pre-commit: OK (run mypy . && pytest before the phase report)"

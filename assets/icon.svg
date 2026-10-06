@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="IntelXtract icon">
+  <defs>
+    <linearGradient id="ixShield" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+
+  <!-- App tile -->
+  <rect x="0" y="0" width="128" height="128" rx="28" fill="#0B1220"/>
+  <rect x="1" y="1" width="126" height="126" rx="27" fill="none" stroke="#1E293B" stroke-width="2"/>
+
+  <!-- Shield + magnifier -->
+  <g transform="translate(28,26)">
+    <path d="M36 6 L64 16 V40 C64 56 50 66 36 70 C22 66 8 56 8 40 V16 Z"
+          fill="url(#ixShield)"/>
+    <circle cx="33" cy="32" r="13" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+    <line x1="42.5" y1="41.5" x2="53" y2="52" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+  </g>
+</svg>

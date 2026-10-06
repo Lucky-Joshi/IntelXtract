@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+.nox/
+
+# Runtime data (directories kept via .gitkeep)
+logs/*
+!logs/.gitkeep
+cache/*
+!cache/.gitkeep
+exports/*
+!exports/.gitkeep
+
+# Local configuration & secrets
+config/settings.json
+config/*.local.json
+*.key
+*.pem
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Packaging artifacts (specs themselves are tracked)
+*.egg
+__pypackages__/
