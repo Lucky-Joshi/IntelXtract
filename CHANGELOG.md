@@ -34,5 +34,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`on_module_done`, `on_task_done`); `ScanRepository.list`/`list_detailed`;
   SQLite connections now run in autocommit so writes survive process exit;
   CLI test suite via `typer.testing.CliRunner`.
+- Phase 5 — GUI: PySide6 desktop shell with sidebar navigation and dark QSS
+  theme from BRAND tokens; pages for Dashboard, Quick/Deep Scan (module
+  checklist), Results, Reports, History, Plugins, API Manager, Settings, and
+  About; `EngineBridge` running the asyncio engine on a worker `QThread` with
+  queued Qt signals into the main thread; read-only SQLite sync helpers;
+  `intelxtract-gui` entry point; offscreen smoke test suite
+  (`QT_QPA_PLATFORM=offscreen`).
 
 [Unreleased]: https://keepachangelog.com/en/1.1.0/

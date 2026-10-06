@@ -53,7 +53,7 @@ sub-phases that are small enough to implement and verify independently.
 | 2     | Core Architecture          | B         | L    | [x]    |
 | 3     | Database                   | B         | M    | [x]    |
 | 4     | CLI                        | B         | M    | [x]    |
-| 5     | GUI                        | C         | XL   | [ ]    |
+| 5     | GUI                        | C         | XL   | [x]    |
 | 6     | Input Engine               | D         | S    | [ ]    |
 | 7     | Module System              | D         | M    | [ ]    |
 | 8     | Domain Module              | D         | L    | [ ]    |
@@ -232,23 +232,23 @@ CLI tests green.
 **Objective:** PySide6 desktop application shell with all pages stubbed and
 wired to the core engine.
 
-- [ ] S5.1 App shell — main window, sidebar navigation, dark theme QSS built
+- [x] S5.1 App shell — main window, sidebar navigation, dark theme QSS built
       from BRAND.md tokens, status bar
-- [ ] S5.2 Dashboard — scan queue, recent scans, active tasks, threat summary,
+- [x] S5.2 Dashboard — scan queue, recent scans, active tasks, threat summary,
       stats widgets, plugin status, API usage, log tail (live from engine)
-- [ ] S5.3 Quick Scan — single target, fast module set, one-click run
-- [ ] S5.4 Deep Scan — full module set with module checklist (custom mode)
-- [ ] S5.5 Results — tabbed findings view per module + correlation panel stub
-- [ ] S5.6 Reports — list generated reports, export shortcuts
-- [ ] S5.7 History — past scans table with filters and diff entry point
-- [ ] S5.8 Plugins — discovered plugins, enable/disable, manifest details
-- [ ] S5.9 API Manager — API keys per provider (writes to vault from Phase 24;
+- [x] S5.3 Quick Scan — single target, fast module set, one-click run
+- [x] S5.4 Deep Scan — full module set with module checklist (custom mode)
+- [x] S5.5 Results — tabbed findings view per module + correlation panel stub
+- [x] S5.6 Reports — list generated reports, export shortcuts
+- [x] S5.7 History — past scans table with filters and diff entry point
+- [x] S5.8 Plugins — discovered plugins, enable/disable, manifest details
+- [x] S5.9 API Manager — API keys per provider (writes to vault from Phase 24;
       interim: config storage with warning banner)
-- [ ] S5.10 Settings — theme, paths, rate limits, timeouts, cache, DB, logging
-- [ ] S5.11 About — version, license, links
-- [ ] S5.12 Engine bridge — background `QThread`/worker running asyncio engine,
+- [x] S5.10 Settings — theme, paths, rate limits, timeouts, cache, DB, logging
+- [x] S5.11 About — version, license, links
+- [x] S5.12 Engine bridge — background `QThread`/worker running asyncio engine,
       signals for progress/results into Qt main thread
-- [ ] S5.13 Smoke test — launch offscreen (`QT_QPA_PLATFORM=offscreen`),
+- [x] S5.13 Smoke test — launch offscreen (`QT_QPA_PLATFORM=offscreen`),
       navigate every page, assert no crashes
 
 **Deliverables:** `gui/` package, QSS theme, offscreen smoke tests.
