@@ -144,9 +144,12 @@ async def test_http_conveniences_require_http(tmp_path: Path) -> None:
         await module.http_get_json(ctx, "https://x")
 
 
-async def test_context_api_key_accessor(tmp_path: Path) -> None:
+async def test_context_api_key_accessor(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("HIBP_API_KEY", "test-key")
     ctx = make_module_context(make_module_config(tmp_path))
-    assert ctx.api_key("hibp") == "HIBP-SECRET-1234"
+    assert ctx.api_key("hibp") == "test-key"
     assert ctx.api_key("missing") is None
 
 

@@ -9,6 +9,7 @@ make_module_context``.
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 from typing import Any, cast
 
@@ -72,11 +73,20 @@ class FakeHttpClient:
 
 
 def make_module_config(
-    path: Path, *, key: str = "hibp", secret: str = "HIBP-SECRET-1234"
+    path: Path, *, key: str = "hibp", secret: str | None = None
 ) -> Config:
-    """Build a tmp-backed config with an ``api_keys.<key>`` entry set."""
+    """Build a tmp-backed config with an optional ``api_keys.<key>`` entry.
+
+    Secrets must never be hardcoded.  When ``secret`` is omitted it falls
+    back to the ``<KEY>_API_KEY`` environment variable (which a ``.env``
+    file feeds via :func:`core.config.load_env_file`); with no value the
+    key is left unset.
+    """
     cfg = Config(path, use_env=False)
-    cfg.set(f"api_keys.{key}", secret)
+    if secret is None:
+        secret = os.environ.get(f"{key.upper()}_API_KEY")
+    if secret:
+        cfg.set(f"api_keys.{key}", secret)
     return cfg
 
 

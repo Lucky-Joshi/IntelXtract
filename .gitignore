@@ -37,6 +37,9 @@ exports/*
 # Local configuration & secrets
 config/settings.json
 config/*.local.json
+.env
+.env.*
+!.env.example
 *.key
 *.pem
 

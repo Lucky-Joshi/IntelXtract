@@ -4,11 +4,13 @@ Precedence (lowest to highest):
 
 1. Built-in defaults (:data:`DEFAULTS`)
 2. JSON file (``config/settings.json`` by default)
-3. Environment variables prefixed with ``INTELXTRACT_``
+3. ``.env`` file (see :func:`load_env_file`) and environment variables
+   prefixed with ``INTELXTRACT_``
 
 Nested keys use dotted paths (``scan.max_workers``).  Environment variables
 map ``__`` to nesting levels: ``INTELXTRACT_SCAN__MAX_WORKERS=16`` sets
-``scan.max_workers``.
+``scan.max_workers``.  The ``.env`` file is the documented way to keep API
+keys and other secrets out of the repository.
 """
 
 from __future__ import annotations
@@ -24,6 +26,7 @@ from core.exceptions import ConfigError
 
 ENV_PREFIX = "INTELXTRACT_"
 ENV_CONFIG_PATH = f"{ENV_PREFIX}CONFIG_PATH"
+ENV_DOTENV_PATH = f"{ENV_PREFIX}DOTENV"
 
 DEFAULTS: dict[str, Any] = {
     "app": {
@@ -69,6 +72,46 @@ def _coerce_env(value: str) -> Any:
         return json.loads(value)
     except (json.JSONDecodeError, ValueError):
         return value
+
+
+def _parse_dotenv(text: str) -> dict[str, str]:
+    """Parse simple ``KEY=VALUE`` lines (blank lines, ``#`` comments, quotes)."""
+    pairs: dict[str, str] = {}
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+            value = value[1:-1]
+        if key:
+            pairs[key] = value
+    return pairs
+
+
+def load_env_file(path: Path | str | None = None) -> Path | None:
+    """Load ``KEY=VALUE`` pairs from a ``.env`` file into ``os.environ``.
+
+    Resolution: explicit ``path`` > ``INTELXTRACT_DOTENV`` > ``.env`` in the
+    current directory.  Existing environment variables always win and are
+    never overwritten.  Returns the loaded file path, or ``None`` when the
+    file is absent.
+    """
+    if path is None:
+        path = os.environ.get(ENV_DOTENV_PATH, ".env")
+    env_path = Path(path)
+    if not env_path.is_file():
+        return None
+    try:
+        pairs = _parse_dotenv(env_path.read_text(encoding="utf-8"))
+    except OSError:
+        return None
+    for key, value in pairs.items():
+        if key not in os.environ:
+            os.environ[key] = value
+    return env_path
 
 
 def _coerce_to_current(value: Any, current: Any) -> Any:
@@ -148,6 +191,8 @@ class Config:
         self._use_env = use_env
         self._lock = threading.RLock()
         self._data: dict[str, Any] = {}
+        if use_env:
+            load_env_file()
         self.reload()
 
     @property

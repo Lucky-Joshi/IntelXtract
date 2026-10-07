@@ -67,5 +67,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reusable test harness under `tests/modules/` (`DummyModule`,
   `KeyedDummyModule`, `FakeHttpClient`, `make_module_context`) with the dummy
   module executing end-to-end through the engine into SQLite.
+- `.env` support in `core/config.py` (`load_env_file`): API keys and other
+  secrets can live in a git-ignored `.env` file (template in
+  `.env.example`); existing environment variables are never overridden.
+
+### Fixed
+
+- Removed the hard-coded placeholder API key from the Phase 7 test harness
+  (`tests/modules/fakes.py`); secrets are no longer committed and instead
+  flow from the environment or the `.env` file.
 
 [Unreleased]: https://keepachangelog.com/en/1.1.0/

@@ -91,14 +91,18 @@ async def test_requires_keys_module_skipped_without_key(tmp_path: Path) -> None:
     assert "hibp" in (runs["dummy_keyed"].error or "")
 
 
-async def test_requires_keys_module_runs_when_key_configured(tmp_path: Path) -> None:
+async def test_requires_keys_module_runs_when_key_configured(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    api_value = "hibp-test-token"
+    monkeypatch.setenv("HIBP_API_KEY", api_value)
     cfg = _cfg(tmp_path)
     engine = _engine(cfg, modules=[KeyedDummyModule()])
     result = await engine.scan("example.com")
 
     runs = {r.module: r for r in result.runs}
     assert runs["dummy_keyed"].status is ModuleStatus.SUCCESS
-    assert result.findings[0]["data"] == {"key_len": len("HIBP-SECRET-1234")}
+    assert result.findings[0]["data"] == {"key_len": len(api_value)}
 
 
 class TwinModule(DummyModule):
@@ -129,7 +133,10 @@ async def test_duplicate_findings_deduped_across_modules(tmp_path: Path) -> None
     assert result.findings[0]["module"] == "dummy"
 
 
-async def test_registry_instances_drive_engine(tmp_path: Path) -> None:
+async def test_registry_instances_drive_engine(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("HIBP_API_KEY", "hibp-test-token")
     reg = ModuleRegistry()
     reg.register(DummyModule())
     reg.register(KeyedDummyModule())

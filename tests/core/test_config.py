@@ -1,17 +1,35 @@
 """Layered configuration tests."""
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
 import pytest
 
-from core.config import DEFAULTS, Config
+from core.config import DEFAULTS, Config, load_env_file
 from core.exceptions import ConfigError
 
 
 def _write_json(path: Path, data: dict[str, Any]) -> None:
     path.write_text(json.dumps(data), encoding="utf-8")
+
+
+def _write_dotenv(path: Path, text: str) -> None:
+    path.write_text(text, encoding="utf-8")
+
+
+def _snapshot_env(names: list[str]) -> dict[str, str | None]:
+    return {name: os.environ.get(name) for name in names}
+
+
+def _restore_env(snapshot: dict[str, str | None]) -> None:
+    """Restore exact pre-test env (dotenv writes bypass monkeypatch)."""
+    for name, prior in snapshot.items():
+        if prior is None:
+            os.environ.pop(name, None)
+        else:
+            os.environ[name] = prior
 
 
 def test_defaults_loaded(tmp_path: Path) -> None:
@@ -125,3 +143,52 @@ def test_non_object_file_raises(tmp_path: Path) -> None:
     path.write_text("[1, 2]", encoding="utf-8")
     with pytest.raises(ConfigError):
         Config(path, use_env=False)
+
+
+def test_dotenv_layer_feeds_config(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    snapshot = _snapshot_env(
+        ["INTELXTRACT_SCAN__MAX_WORKERS", "INTELXTRACT_LOGGING__LEVEL"]
+    )
+    try:
+        _write_dotenv(
+            tmp_path / ".env",
+            "# comment\nINTELXTRACT_SCAN__MAX_WORKERS=12\n"
+            'INTELXTRACT_LOGGING__LEVEL="DEBUG"\n',
+        )
+        monkeypatch.chdir(tmp_path)
+        cfg = Config(tmp_path / "settings.json")
+        assert cfg.get("scan.max_workers") == 12
+        assert cfg.get("logging.level") == "DEBUG"
+    finally:
+        _restore_env(snapshot)
+
+
+def test_dotenv_skipped_when_use_env_false(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _write_dotenv(tmp_path / ".env", "INTELXTRACT_SCAN__MAX_WORKERS=12\n")
+    monkeypatch.chdir(tmp_path)
+    cfg = Config(tmp_path / "settings.json", use_env=False)
+    assert cfg.get("scan.max_workers") == DEFAULTS["scan"]["max_workers"]
+
+
+def test_existing_environment_wins_over_dotenv(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _write_dotenv(tmp_path / ".env", "INTELXTRACT_SCAN__MAX_WORKERS=12\n")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("INTELXTRACT_SCAN__MAX_WORKERS", "16")
+    cfg = Config(tmp_path / "settings.json")
+    assert cfg.get("scan.max_workers") == 16
+
+
+def test_load_env_file_resolution(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    assert load_env_file(tmp_path / "missing.env") is None
+    _write_dotenv(tmp_path / ".env", "unused=sentinel\n")
+    assert load_env_file() == Path(".env")
+    os.environ.pop("unused", None)
