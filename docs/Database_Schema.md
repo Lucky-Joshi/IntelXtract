@@ -8,6 +8,8 @@ PostgreSQL support is a post-1.0 option; the schema uses portable types
 - Source of truth for DDL: [`database/schema.sql`](../database/schema.sql)
   (migration 1). Future changes ship as new forward-only migrations in
   `database/migrations.py` — applied migrations are never edited.
+  Migration 2 adds the normalized `findings.title`, `findings.evidence`,
+  `findings.content_hash`, and `findings.collected_at` columns (Phase 7).
 - All timestamps are **ISO-8601 UTC strings** (`2026-10-06T13:59:00+00:00`)
   except `duration` (REAL seconds) and confidence (REAL 0–1).
 - JSON columns (`data`, `payload`, `context`, `value`, `runs_json`) hold
@@ -73,12 +75,16 @@ Indexes: `uuid` UNIQUE, `target_id`, `status`.
 | id | INTEGER | PK AUTOINCREMENT | |
 | scan_id | INTEGER | NOT NULL, FK → scans(id) ON DELETE CASCADE | owning scan |
 | module | TEXT | NOT NULL | producing module name |
-| severity | TEXT | NULL | severity value (Phase 7+) |
-| confidence | REAL | NULL, CHECK 0–1 | confidence (Phase 7+) |
+| title | TEXT | NOT NULL, default `''` | finding headline (migration 2, Phase 7) |
+| severity | TEXT | NULL | severity level (`info`/`low`/`medium`/`high`/`critical`) |
+| confidence | REAL | NULL, CHECK 0–1 | confidence of the finding |
 | data | TEXT | NOT NULL | JSON payload |
+| evidence | TEXT | NOT NULL, default `''` | supporting detail (migration 2, Phase 7) |
+| content_hash | TEXT | NULL | SHA-256 dedupe key (migration 2, Phase 7) |
+| collected_at | TEXT | NULL | when the module collected it (migration 2, Phase 7) |
 | created_at | TEXT | NOT NULL | |
 
-Indexes: `scan_id`, `(scan_id, module)`.
+Indexes: `scan_id`, `(scan_id, module)`, `content_hash` (migration 2).
 
 ### reports
 

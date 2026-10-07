@@ -43,8 +43,18 @@ def _load_initial_sql() -> str:
         raise MigrationError(f"cannot read {SCHEMA_FILE}: {exc}") from exc
 
 
+_MIGRATION_2_SQL = """
+ALTER TABLE findings ADD COLUMN title TEXT NOT NULL DEFAULT '';
+ALTER TABLE findings ADD COLUMN evidence TEXT NOT NULL DEFAULT '';
+ALTER TABLE findings ADD COLUMN content_hash TEXT;
+ALTER TABLE findings ADD COLUMN collected_at TEXT;
+CREATE INDEX IF NOT EXISTS idx_findings_content_hash ON findings (content_hash);
+"""
+
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(version=1, name="initial schema", sql=_load_initial_sql()),
+    Migration(version=2, name="finding normalized fields", sql=_MIGRATION_2_SQL),
 )
 
 

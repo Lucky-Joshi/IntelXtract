@@ -9,16 +9,18 @@ from __future__ import annotations
 
 import time
 import uuid
-from collections.abc import Awaitable, Callable, Sequence
-from dataclasses import dataclass, field
+from collections.abc import Awaitable, Callable, Iterator, Sequence
+from dataclasses import dataclass, field, replace
 from typing import Any, Protocol, runtime_checkable
 
 from core.cache import AsyncTTLCache
 from core.config import Config
 from core.constants import ModuleStatus, ScanMode, ScanStatus, TargetType, TaskState
 from core.exceptions import ScanError, TaskTimeoutError, ValidationError
+from core.http_client import HttpClient
 from core.input_engine import classify, select_modules
 from core.logger import get_logger, scan_context
+from core.models import ModuleResult
 from core.scheduler import Task, TaskScheduler
 from core.worker_pool import WorkerPool
 
@@ -60,8 +62,8 @@ def task_to_module_run(name: str, task: Task) -> ModuleRun:
 class ScanModule(Protocol):
     """Minimal module contract consumed by the engine.
 
-    Replaced by ``modules.base.BaseModule`` in Phase 7 (adds parse/export
-    and registry metadata).
+    Replaced by ``modules.base.BaseModule`` in Phase 7 (adds parse/export,
+    registry metadata, and ``requires_keys``).
     """
 
     name: str
@@ -82,6 +84,16 @@ class ModuleContext:
     scan_id: str
     target_type: TargetType = TargetType.UNKNOWN
     extras: dict[str, Any] = field(default_factory=dict)
+    http: HttpClient | None = None
+
+    def api_key(self, name: str) -> str | None:
+        """Return a configured API key (``api_keys.<name>``) or ``None``."""
+        value = self.config.get(f"api_keys.{name}")
+        return value if isinstance(value, str) and value else None
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Read a per-scan extra from :attr:`extras`."""
+        return self.extras.get(key, default)
 
 
 @dataclass(slots=True)
@@ -154,6 +166,26 @@ class ScanResult:
 def _default_classifier(target: str) -> TargetType:
     """Classify targets with the Phase 6 input engine."""
     return classify(target)
+
+
+def _configured(config: Config, key: str) -> bool:
+    """True when an ``api_keys.<key>`` entry holds a non-empty value."""
+    value = config.get(f"api_keys.{key}")
+    return isinstance(value, str) and bool(value)
+
+
+def _dedupe_findings(
+    findings: Sequence[dict[str, Any]],
+) -> Iterator[dict[str, Any]]:
+    """Drop repeat findings by ``content_hash`` while preserving order."""
+    seen: set[str] = set()
+    for finding in findings:
+        digest = finding.get("content_hash")
+        if digest is None:
+            yield finding
+        elif isinstance(digest, str) and digest not in seen:
+            seen.add(digest)
+            yield finding
 
 
 class ScanEngine:
@@ -233,32 +265,36 @@ class ScanEngine:
             )
             planned, skipped = self._plan(cleaned, target_type, scan_mode, module_names)
             scheduler = TaskScheduler()
+            http = HttpClient(config=self._config)
             ctx = ModuleContext(
                 config=self._config,
                 cache=self._cache,
                 logger=_log,
                 scan_id=scan_id,
                 target_type=target_type,
-            )
-            for module in planned:
-                scheduler.submit(
-                    module.run(cleaned, ctx),
-                    name=module.name,
-                    timeout=self._timeout,
-                )
-            pool = WorkerPool(
-                scheduler,
-                concurrency=max(self._concurrency, 1),
-                default_timeout=self._timeout,
-                on_task_done=(
-                    self._on_module_progress if self._on_module_done else None
-                ),
+                http=http,
             )
             try:
+                for module in planned:
+                    scheduler.submit(
+                        module.run(cleaned, ctx),
+                        name=module.name,
+                        timeout=self._timeout,
+                    )
+                pool = WorkerPool(
+                    scheduler,
+                    concurrency=max(self._concurrency, 1),
+                    default_timeout=self._timeout,
+                    on_task_done=(
+                        self._on_module_progress if self._on_module_done else None
+                    ),
+                )
                 await pool.run()
             except Exception as exc:
                 _log.error("scan %s aborted: %s", scan_id, exc)
                 raise ScanError(f"scan {scan_id} aborted: {exc}") from exc
+            finally:
+                await http.aclose()
             result = self._build_result(
                 scan_id,
                 cleaned,
@@ -339,6 +375,17 @@ class ScanEngine:
                     )
                 )
                 continue
+            required = getattr(module, "requires_keys", None) or ()
+            missing = [key for key in required if not _configured(self._config, key)]
+            if missing:
+                skipped.append(
+                    ModuleRun(
+                        module=module.name,
+                        status=ModuleStatus.SKIPPED,
+                        error=f"missing api key(s): {', '.join(missing)}",
+                    )
+                )
+                continue
             if not module.validate(target):
                 skipped.append(
                     ModuleRun(
@@ -377,10 +424,15 @@ class ScanEngine:
                 )
                 continue
             run = task_to_module_run(module.name, task)
+            result = run.result
+            if isinstance(result, ModuleResult):
+                run = replace(run, result=result.to_dict())
+                findings.extend(finding.to_dict() for finding in result.findings)
+            elif run.status is ModuleStatus.SUCCESS and result is not None:
+                findings.append({"module": module.name, "data": result})
             runs.append(run)
-            if run.status is ModuleStatus.SUCCESS and run.result is not None:
-                findings.append({"module": module.name, "data": run.result})
         runs.sort(key=lambda r: r.module)
+        findings = list(_dedupe_findings(findings))
         return ScanResult(
             scan_id=scan_id,
             target=target,

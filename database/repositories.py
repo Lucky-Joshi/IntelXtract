@@ -83,9 +83,13 @@ class FindingRecord:
     id: int
     scan_id: int
     module: str
+    title: str
     severity: str | None
     confidence: float | None
     data: dict[str, Any]
+    evidence: str
+    content_hash: str | None
+    collected_at: str | None
     created_at: str
 
 
@@ -180,9 +184,13 @@ def _finding_row(row: sqlite3.Row) -> FindingRecord:
         id=int(row["id"]),
         scan_id=int(row["scan_id"]),
         module=str(row["module"]),
+        title=str(row["title"]),
         severity=row["severity"],
         confidence=row["confidence"],
         data=dict(_loads(row["data"], {})),
+        evidence=str(row["evidence"]),
+        content_hash=row["content_hash"],
+        collected_at=row["collected_at"],
         created_at=str(row["created_at"]),
     )
 
@@ -432,8 +440,9 @@ class FindingRepository:
     ) -> int:
         """Insert findings for a scan; returns how many were written.
 
-        Each item requires ``module`` and ``data``; optional ``severity``
-        and ``confidence`` are stored as-is.
+        Each item requires ``module`` and ``data``; optional ``severity``,
+        ``confidence``, ``title``, ``evidence``, ``content_hash``, and
+        ``collected_at`` are stored as-is.
         """
         if not findings:
             return 0
@@ -442,16 +451,21 @@ class FindingRepository:
             (
                 scan_id,
                 str(item["module"]),
+                str(item.get("title") or ""),
                 item.get("severity"),
                 item.get("confidence"),
                 _dumps(item.get("data", {})),
+                str(item.get("evidence") or ""),
+                item.get("content_hash"),
+                item.get("collected_at") or now,
                 now,
             )
             for item in findings
         ]
         await self._db.executemany(
-            "INSERT INTO findings (scan_id, module, severity, confidence,"
-            " data, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO findings (scan_id, module, title, severity, confidence,"
+            " data, evidence, content_hash, collected_at, created_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             rows,
         )
         return len(rows)

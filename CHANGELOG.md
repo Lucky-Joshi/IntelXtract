@@ -51,5 +51,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fallback to all registered modules; the engine's default classifier now
   uses the real input engine instead of returning `unknown`; 87 table-driven
   classification/normalization/selection tests.
+- Phase 7 — module system: `core/models.py` with the `Finding` dataclass
+  (`module`, `title`, `severity`, `confidence`, `data`, `evidence`,
+  `collected_at`) normalized from raw module output, deduplicated by a stable
+  SHA-256 content hash, and carried on `ModuleResult`; `modules/base.py`
+  `BaseModule` ABC (metadata, `validate`, `run`, `parse`, `export`, timeout/
+  retry hooks) and `modules/registry.py` `ModuleRegistry` for discovery of
+  packages under `modules/`, name-collision handling, and per-name enable/
+  disable; `core/http_client.py` lazily-constructed aiohttp `HttpClient` with
+  retry; the engine's `ModuleContext` now carries the shared HTTP session and
+  an `api_key()` accessor, plans skip modules with unconfigured
+  `requires_keys`, extracts and dedupes `ModuleResult` findings, and closes
+  the HTTP client per scan; DB migration 2 adds `findings.title`, `evidence`,
+  `content_hash`, and `collected_at` persisted through `FindingRepository`;
+  reusable test harness under `tests/modules/` (`DummyModule`,
+  `KeyedDummyModule`, `FakeHttpClient`, `make_module_context`) with the dummy
+  module executing end-to-end through the engine into SQLite.
 
 [Unreleased]: https://keepachangelog.com/en/1.1.0/

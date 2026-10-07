@@ -55,7 +55,7 @@ sub-phases that are small enough to implement and verify independently.
 | 4     | CLI                        | B         | M    | [x]    |
 | 5     | GUI                        | C         | XL   | [x]    |
 | 6     | Input Engine               | D         | S    | [x]    |
-| 7     | Module System              | D         | M    | [ ]    |
+| 7     | Module System              | D         | M    | [x]    |
 | 8     | Domain Module              | D         | L    | [ ]    |
 | 9     | IP Module                  | D         | M    | [ ]    |
 | 10    | Website Module             | D         | M    | [ ]    |
@@ -289,20 +289,20 @@ inputs produce actionable errors; tests green.
 
 **Objective:** Uniform interface every collector implements.
 
-- [ ] S7.1 `BaseModule` ABC — `name`, `target_types`, `requires_keys`,
+- [x] S7.1 `BaseModule` ABC — `name`, `target_types`, `requires_keys`,
       `validate(target)`, `async run(target, ctx) -> ModuleResult`,
       `parse(raw)`, `export(result)`; shared timeout/retry hooks
-- [ ] S7.2 Registry — module discovery (import packages under `modules/`),
+- [x] S7.2 Registry — module discovery (import packages under `modules/`),
       collision handling, enable/disable per profile
-- [ ] S7.3 Normalizer — `Finding` dataclass (`module`, `title`, `severity`,
+- [x] S7.3 Normalizer — `Finding` dataclass (`module`, `title`, `severity`,
       `confidence`, `data`, `evidence`, `collected_at`) + dedupe by content hash
-- [ ] S7.4 Context object — config, cache, logger, HTTP session, API-key
+- [x] S7.4 Context object — config, cache, logger, HTTP session, API-key
       accessor handed to every `run()`
-- [ ] S7.5 Test harness — shared pytest fixtures (mock HTTP, fake context)
+- [x] S7.5 Test harness — shared fixtures/helpers (mock HTTP, fake context)
       + one dummy module proving the contract end-to-end
 
 **Deliverables:** `modules/base.py`, `modules/registry.py`, `core/models.py`,
-test harness.
+`core/http_client.py`, test harness (`tests/modules/`).
 
 **Done criteria:** Dummy module executes through the engine and its findings
 normalize and persist; harness reusable by Phase 8 tests.
