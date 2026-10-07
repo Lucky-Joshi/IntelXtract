@@ -17,6 +17,7 @@ from core.cache import AsyncTTLCache
 from core.config import Config
 from core.constants import ModuleStatus, ScanMode, ScanStatus, TargetType, TaskState
 from core.exceptions import ScanError, TaskTimeoutError, ValidationError
+from core.input_engine import classify, select_modules
 from core.logger import get_logger, scan_context
 from core.scheduler import Task, TaskScheduler
 from core.worker_pool import WorkerPool
@@ -150,9 +151,9 @@ class ScanResult:
         }
 
 
-def _default_classifier(_target: str) -> TargetType:
-    """Placeholder classifier until the input engine lands (Phase 6)."""
-    return TargetType.UNKNOWN
+def _default_classifier(target: str) -> TargetType:
+    """Classify targets with the Phase 6 input engine."""
+    return classify(target)
 
 
 class ScanEngine:
@@ -230,7 +231,7 @@ class ScanEngine:
             _log.info(
                 "scan %s started for %s (%s)", scan_id, cleaned, target_type.value
             )
-            planned, skipped = self._plan(cleaned, target_type, module_names)
+            planned, skipped = self._plan(cleaned, target_type, scan_mode, module_names)
             scheduler = TaskScheduler()
             ctx = ModuleContext(
                 config=self._config,
@@ -305,6 +306,7 @@ class ScanEngine:
         self,
         target: str,
         target_type: TargetType,
+        mode: ScanMode,
         module_names: Sequence[str] | None,
     ) -> tuple[list[ScanModule], list[ModuleRun]]:
         """Select eligible modules; returns (to_run, skipped_runs)."""
@@ -314,7 +316,16 @@ class ScanEngine:
                 raise ValidationError(f"unknown module(s): {', '.join(unknown)}")
             candidates = [self._modules[n] for n in module_names]
         else:
-            candidates = [self._modules[name] for name in sorted(self._modules)]
+            selected = select_modules(
+                target_type, mode, available=frozenset(self._modules)
+            )
+            if selected:
+                candidates = [self._modules[name] for name in selected]
+            else:
+                # Fall back to every registered module so collectors that are
+                # not yet listed in the selection map still run (Phase 7+ fills
+                # the map as real modules land).
+                candidates = [self._modules[name] for name in sorted(self._modules)]
 
         planned: list[ScanModule] = []
         skipped: list[ModuleRun] = []

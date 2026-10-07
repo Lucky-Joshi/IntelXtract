@@ -19,7 +19,7 @@ class DummyModule:
     """Minimal ScanModule stand-in until the real module system lands."""
 
     name = "dummy"
-    target_types = (TargetType.UNKNOWN, TargetType.DOMAIN)
+    target_types: tuple[TargetType, ...] = ()
 
     def validate(self, target: str) -> bool:
         return bool(target and target.strip())

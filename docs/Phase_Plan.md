@@ -54,7 +54,7 @@ sub-phases that are small enough to implement and verify independently.
 | 3     | Database                   | B         | M    | [x]    |
 | 4     | CLI                        | B         | M    | [x]    |
 | 5     | GUI                        | C         | XL   | [x]    |
-| 6     | Input Engine               | D         | S    | [ ]    |
+| 6     | Input Engine               | D         | S    | [x]    |
 | 7     | Module System              | D         | M    | [ ]    |
 | 8     | Domain Module              | D         | L    | [ ]    |
 | 9     | IP Module                  | D         | M    | [ ]    |
@@ -264,15 +264,15 @@ GUI and results appear; offscreen tests green.
 
 **Objective:** Automatic target detection, validation, and module selection.
 
-- [ ] S6.1 Target classifier — regex rules for domain, IP (v4/v6), URL,
+- [x] S6.1 Target classifier — regex rules for domain, IP (v4/v6), URL,
       email, username, hash (md5/sha1/sha256), file path; precedence order
       documented
-- [ ] S6.2 Validator & normalizer — syntax checks, lowercase/punycode for
+- [x] S6.2 Validator & normalizer — syntax checks, lowercase/punycode for
       domains, URL scheme defaulting, trim/whitespace handling, clear
       rejection errors
-- [ ] S6.3 Module selection map — target type → eligible module names,
+- [x] S6.3 Module selection map — target type → eligible module names,
       consumed by scan planner (quick/deep/custom profiles)
-- [ ] S6.4 Tests — table-driven classification/validation cases including
+- [x] S6.4 Tests — table-driven classification/validation cases including
       edge cases (IDN, IPv6, ports, `user@host`, bare usernames)
 
 **Deliverables:** `core/input_engine.py` (or `core/target.py`), selection map,

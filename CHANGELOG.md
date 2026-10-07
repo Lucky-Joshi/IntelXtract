@@ -41,5 +41,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   queued Qt signals into the main thread; read-only SQLite sync helpers;
   `intelxtract-gui` entry point; offscreen smoke test suite
   (`QT_QPA_PLATFORM=offscreen`).
+- Phase 6 — input engine: `core/input_engine.py` with a precedence-documented
+  classifier (URL, email, IP v4/v6 with ports, hash md5/sha1/sha256, file
+  path/dotfile/extension, domain with IDN→punycode, username, unknown);
+  `parse_target`/`normalize` producing canonical `NormalizedTarget`
+  (punycoded host, hex-lowercased hash, default URL scheme, compact IPv6)
+  with actionable `ValidationError`s; `select_modules` selection map
+  (quick/deep/custom profiles) now consumed by the scan planner with a
+  fallback to all registered modules; the engine's default classifier now
+  uses the real input engine instead of returning `unknown`; 87 table-driven
+  classification/normalization/selection tests.
 
 [Unreleased]: https://keepachangelog.com/en/1.1.0/

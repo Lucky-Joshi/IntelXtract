@@ -139,7 +139,7 @@ def test_report_json_roundtrip(cli_env: Path) -> None:
     assert report_path.exists()
     payload: dict[str, Any] = json.loads(report_path.read_text(encoding="utf-8"))
     assert payload["scan"]["uuid"]
-    assert payload["target"] == {"value": "example.com", "type": "unknown"}
+    assert payload["target"] == {"value": "example.com", "type": "domain"}
     assert payload["findings"] == []
     assert "requested format: json" in result.stdout
 

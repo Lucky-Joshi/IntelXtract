@@ -62,7 +62,7 @@ async def test_scan_with_no_modules(tmp_path: Path) -> None:
     assert result.findings == []
     assert result.error is None
     assert result.target == "example.com"
-    assert result.target_type is TargetType.UNKNOWN
+    assert result.target_type is TargetType.DOMAIN
     assert result.duration >= 0
     assert len(result.scan_id) == 12
 
