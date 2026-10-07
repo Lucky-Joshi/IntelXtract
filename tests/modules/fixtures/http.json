@@ -1,0 +1,28 @@
+{
+  "https://example.com/": {
+    "status": 301,
+    "headers": {
+      "Location": "https://www.example.com/",
+      "Strict-Transport-Security": "max-age=31536000",
+      "Content-Security-Policy": "default-src 'none'",
+      "Content-Type": "text/html; charset=UTF-8",
+      "Server": "ECS (dcb/7F83)"
+    },
+    "body": "moved permanently"
+  },
+  "http://example.com/": {
+    "status": 301,
+    "headers": {"Location": "https://example.com/"},
+    "body": "Moved Permanently"
+  },
+  "https://example.com/robots.txt": {
+    "status": 200,
+    "headers": {"Content-Type": "text/plain"},
+    "body": "User-agent: *\nDisallow: /private/"
+  },
+  "https://example.com/sitemap.xml": {
+    "status": 404,
+    "headers": {"Content-Type": "text/html"},
+    "body": "not found"
+  }
+}

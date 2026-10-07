@@ -1,0 +1,40 @@
+{
+  "objectClassName": "domain",
+  "handle": "D1537390-COM",
+  "ldhName": "EXAMPLE.COM",
+  "status": ["client delete prohibited", "client transfer prohibited"],
+  "events": [
+    {"eventAction": "registration", "eventDate": "1995-08-14T04:00:00Z"},
+    {"eventAction": "expiration", "eventDate": "2027-08-13T04:00:00Z"}
+  ],
+  "nameservers": [
+    {"ldhName": "a.iana-servers.net", "objectClassName": "nameserver"},
+    {"ldhName": "b.iana-servers.net", "objectClassName": "nameserver"}
+  ],
+  "registrar": {"ldhName": "RESERVED-Internet Assigned Numbers Authority"},
+  "secureDNS": {"delegationSigned": true},
+  "entities": [
+    {
+      "roles": ["registrant"],
+      "vcardArray": [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Internet Corporation for Assigned Names and Numbers"],
+          ["email", {}, "text", "hostmaster@iana.org"]
+        ]
+      ]
+    },
+    {
+      "roles": ["abuse"],
+      "vcardArray": [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Domain Administrator"],
+          ["email", {}, "text", "abuse@iana.org"]
+        ]
+      ]
+    }
+  ]
+}

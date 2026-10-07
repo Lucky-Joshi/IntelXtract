@@ -56,7 +56,7 @@ sub-phases that are small enough to implement and verify independently.
 | 5     | GUI                        | C         | XL   | [x]    |
 | 6     | Input Engine               | D         | S    | [x]    |
 | 7     | Module System              | D         | M    | [x]    |
-| 8     | Domain Module              | D         | L    | [ ]    |
+| 8     | Domain Module              | D         | L    | [x]    |
 | 9     | IP Module                  | D         | M    | [ ]    |
 | 10    | Website Module             | D         | M    | [ ]    |
 | 11    | Email Module               | D         | M    | [ ]    |
@@ -315,18 +315,18 @@ normalize and persist; harness reusable by Phase 8 tests.
 
 **Objective:** Full domain intelligence collection.
 
-- [ ] S8.1 `modules/domain/whois.py` — registrar, dates, nameservers,
+- [x] S8.1 `modules/domain/whois.py` — registrar, dates, nameservers,
       contacts (email redaction option), DNSSEC status
-- [ ] S8.2 `modules/domain/dns.py` — A/AAAA/CNAME/NS/MX/TXT, SPF, DKIM
+- [x] S8.2 `modules/domain/dns.py` — A/AAAA/CNAME/NS/MX/TXT, SPF, DKIM
       selector probe, DMARC, record raw values
-- [ ] S8.3 `modules/domain/ssl.py` (basic) — certificate subject, issuer,
+- [x] S8.3 `modules/domain/ssl.py` (basic) — certificate subject, issuer,
       validity, SAN list, self-signed/expired flags (deep chain work → Phase 13)
-- [ ] S8.4 `modules/domain/subdomain.py` — passive sources only
+- [x] S8.4 `modules/domain/subdomain.py` — passive sources only
       (certificate transparency via crt.sh, public datasets)
-- [ ] S8.5 `modules/domain/http.py` — HTTP/HTTPS status, redirect chain,
+- [x] S8.5 `modules/domain/http.py` — HTTP/HTTPS status, redirect chain,
       robots.txt/sitemap.xml reachability, security-header *checks*
       (HSTS/CSP/XFO/referrer/permissions → pass-fail findings for risk engine)
-- [ ] S8.6 Tests — all network mocked; record fixtures for WHOIS/DNS/HTTP
+- [x] S8.6 Tests — all network mocked; record fixtures for WHOIS/DNS/HTTP
 
 **Boundary note:** Phase 10 owns raw website profiling (title, cookies, tech).
 Phase 8 owns record/infrastructure facts and pass-fail security checks.

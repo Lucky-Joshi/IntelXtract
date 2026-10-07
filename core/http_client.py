@@ -39,6 +39,22 @@ class ClientMetrics:
     failures: int = 0
 
 
+@dataclass(slots=True)
+class HttpResponse:
+    """Captured HTTP response: status, headers, body, and redirect info."""
+
+    status: int
+    headers: dict[str, str]
+    body: bytes = b""
+    url: str = ""
+    redirects: int = 0
+
+    @property
+    def text(self) -> str:
+        """Body decoded as UTF-8 text."""
+        return self.body.decode("utf-8", errors="replace")
+
+
 class HttpClient:
     """Small HTTP facade with a shared session built on first use."""
 
@@ -96,6 +112,52 @@ class HttpClient:
         async with session.get(url, headers=headers, params=params, **kwargs) as resp:
             resp.raise_for_status()
             return await resp.json(content_type=None)
+
+    async def fetch(
+        self,
+        url: str,
+        *,
+        params: Mapping[str, Any] | None = None,
+        allow_redirects: bool = True,
+    ) -> HttpResponse:
+        """GET a URL and return its status/headers/body without raising.
+
+        Transient failures (408/429/5xx, timeouts, connection errors) are
+        retried; the final response is returned even for 4xx/5xx so callers
+        can react to status codes (e.g. a missing ``robots.txt``).  Only
+        exhausted network errors bubble up.
+        """
+        session = await self._ensure_session()
+        last_error: Exception | None = None
+        for attempt in range(self.retries + 1):
+            should_raise = attempt >= self.retries
+            self.metrics.requests += 1
+            try:
+                async with session.get(
+                    url, params=params, allow_redirects=allow_redirects
+                ) as resp:
+                    if resp.status in (408, 429) or resp.status >= 500:
+                        if not should_raise:
+                            self.metrics.retries += 1
+                            await asyncio.sleep(0.5 * (attempt + 1))
+                            continue
+                    return HttpResponse(
+                        status=resp.status,
+                        headers=dict(resp.headers),
+                        url=str(resp.url),
+                        redirects=len(resp.history),
+                        body=await resp.read(),
+                    )
+            except RETRYABLE_NETWORK_ERRORS as exc:
+                last_error = exc
+                if should_raise:
+                    self.metrics.failures += 1
+                    raise
+                self.metrics.retries += 1
+                await asyncio.sleep(0.5 * (attempt + 1))
+        if last_error is not None:
+            raise last_error
+        raise RuntimeError(f"request to {url!r} exhausted retries")
 
     async def _request(self, method: str, url: str, **kwargs: Any) -> bytes:
         session = await self._ensure_session()

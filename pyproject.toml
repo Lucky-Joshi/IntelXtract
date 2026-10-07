@@ -24,7 +24,7 @@ select = [
 "cli/**" = ["B008"]  # typer/click option defaults are idiomatic
 
 [tool.ruff.lint.isort]
-known-first-party = ["app", "cli", "core", "database", "fakes", "gui", "modules", "plugins", "reports"]
+known-first-party = ["app", "cli", "core", "database", "fakes", "fixtures", "gui", "modules", "plugins", "reports"]
 
 [tool.mypy]
 python_version = "3.13"
@@ -39,7 +39,7 @@ show_error_codes = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["."]
+pythonpath = [".", "tests/modules"]
 asyncio_mode = "auto"
 addopts = "-q"
 markers = [

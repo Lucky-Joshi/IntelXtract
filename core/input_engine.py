@@ -60,7 +60,7 @@ _USERNAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{1,31}$")
 # --- planned module collectors (Phases 8-15) ---------------------------------
 
 _QUICK_MODULES: dict[TargetType, tuple[str, ...]] = {
-    TargetType.DOMAIN: ("domain",),
+    TargetType.DOMAIN: ("dns", "http"),
     TargetType.IP: ("ip",),
     TargetType.URL: ("website",),
     TargetType.EMAIL: ("email",),
@@ -71,7 +71,16 @@ _QUICK_MODULES: dict[TargetType, tuple[str, ...]] = {
 }
 
 _DEEP_MODULES: dict[TargetType, tuple[str, ...]] = {
-    TargetType.DOMAIN: ("domain", "website", "certificate", "news"),
+    TargetType.DOMAIN: (
+        "whois",
+        "dns",
+        "ssl",
+        "subdomain",
+        "http",
+        "website",
+        "certificate",
+        "news",
+    ),
     TargetType.IP: ("ip",),
     TargetType.URL: ("website", "domain", "certificate"),
     TargetType.EMAIL: ("email", "domain"),

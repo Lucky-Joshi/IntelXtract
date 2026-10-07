@@ -70,6 +70,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.env` support in `core/config.py` (`load_env_file`): API keys and other
   secrets can live in a git-ignored `.env` file (template in
   `.env.example`); existing environment variables are never overridden.
+- Phase 8 — domain module: five collectors under `modules/domain/` —
+  `whois.py` (RDAP registrar/dates/nameservers/contacts with email-redaction
+  option and DNSSEC status), `dns.py` (DoH A/AAAA/CNAME/NS/MX/TXT plus SPF,
+  DMARC, and a bounded DKIM selector probe), `ssl.py` (stdlib asyncio TLS
+  handshake exposing subject, issuer, validity, SANs, and self-signed/
+  expired flags), `subdomain.py` (passive certificate-transparency listing
+  via crt.sh), and `http.py` (https/http probes, redirect chains,
+  robots.txt/sitemap.xml reachability, and pass-fail security-header checks
+  for HSTS/CSP/XFO/referrer/permissions). `HttpClient.fetch()` returns a
+  non-raising `HttpResponse` (status/headers/body/redirects) for the probes;
+  the quick/deep selection maps now list the domain modules; the CLI scan
+  registers the discovered domain collectors. All network access is mocked
+  in tests via `tests/modules/fixtures/` recorded payloads (RDAP/DoH/crt.sh/
+  HTTP), covering each module plus an end-to-end engine run persisted into
+  SQLite.
 
 ### Fixed
 

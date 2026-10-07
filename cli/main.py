@@ -44,6 +44,7 @@ from database.connection import Database, open_database
 from database.migrations import migrate
 from database.persistence import make_result_sink
 from database.repositories import Repositories, ScanRecord
+from modules.registry import ModuleRegistry
 
 console = Console()
 err_console = Console(stderr=True)
@@ -107,6 +108,20 @@ def _split_modules(raw: str | None) -> list[str] | None:
         return None
     names = [part.strip() for part in raw.split(",") if part.strip()]
     return names or None
+
+
+def _engine_modules() -> list[Any]:
+    """Discover registered scan modules for engine construction.
+
+    Hard failures are surfaced via a printed warning rather than aborting the
+    scan, matching the fail-soft philosophy of the plugin loader.
+    """
+    try:
+        registry = ModuleRegistry(packages=("modules.domain",))
+        return registry.instances()
+    except Exception as exc:  # fail-soft: keep scans usable offline
+        console.print(f"[yellow]warning:[/yellow] module discovery failed: {exc}")
+        return []
 
 
 def _load_config(db_override: str | None = None) -> Config:
@@ -252,6 +267,7 @@ async def _scan(
 
         engine = ScanEngine(
             cfg,
+            modules=_engine_modules(),
             result_sink=make_result_sink(db),
             on_module_done=_on_done,
         )

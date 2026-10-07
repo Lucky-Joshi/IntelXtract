@@ -17,7 +17,7 @@ from core.cache import AsyncTTLCache
 from core.config import Config
 from core.constants import Severity, TargetType
 from core.engine import ModuleContext
-from core.http_client import HttpClient
+from core.http_client import HttpClient, HttpResponse
 from core.models import ModuleResult, make_finding
 from modules.base import BaseModule
 
@@ -38,35 +38,72 @@ class FakeHttpClient:
     """Stub HTTP client that records requests and serves canned responses."""
 
     def __init__(self) -> None:
-        self._responses: dict[str, tuple[int, Any]] = {}
+        self._responses: dict[str, tuple[int, dict[str, str], Any]] = {}
         self.requests: list[dict[str, Any]] = []
         self.aclosed = False
 
-    def stub(self, url: str, *, body: Any = None, status: int = 200) -> None:
-        """Serve ``body`` (JSON/list/text/bytes) for exact ``url`` matches."""
-        self._responses[url] = (status, body)
+    def stub(
+        self,
+        url: str,
+        *,
+        body: Any = None,
+        status: int = 200,
+        headers: dict[str, str] | None = None,
+    ) -> None:
+        """Serve ``body`` (JSON/list/text/bytes) for exact ``url`` matches.
 
-    async def _record(self, method: str, url: str, kwargs: dict[str, Any]) -> Any:
+        ``body`` may also be a callable ``handler(method, url, kwargs)`` that
+        returns a ``(status, headers, body)`` triple — useful for endpoints
+        that respond differently per query parameter.
+        """
+        self._responses[url] = (status, dict(headers or {}), body)
+
+    async def _lookup(self, method: str, url: str, kwargs: dict[str, Any]) -> Any:
         self.requests.append({"method": method, "url": url, "kwargs": kwargs})
-        status, body = self._responses.get(url, (404, None))
-        if status >= 400:
-            raise HttpError(status, url)
-        return body
+        status, headers, body = self._responses.get(url, (404, {}, None))
+        if callable(body):
+            status, headers, body = body(method, url, kwargs)
+        return status, headers, body
 
     async def get(self, url: str, **kwargs: Any) -> bytes:
-        body = await self._record("GET", url, kwargs)
+        status, _headers, body = await self._lookup("GET", url, kwargs)
+        if status >= 400:
+            raise HttpError(status, url)
         if body is None:
             return b""
         return body.encode() if isinstance(body, str) else bytes(body)
 
     async def get_text(self, url: str, **kwargs: Any) -> str:
-        body = await self._record("GET", url, kwargs)
+        status, _headers, body = await self._lookup("GET", url, kwargs)
+        if status >= 400:
+            raise HttpError(status, url)
         if body is None:
             return ""
         return body.decode() if isinstance(body, bytes) else str(body)
 
     async def get_json(self, url: str, **kwargs: Any) -> Any:
-        return await self._record("GET", url, kwargs)
+        status, _headers, body = await self._lookup("GET", url, kwargs)
+        if status >= 400:
+            raise HttpError(status, url)
+        return body
+
+    async def fetch(self, url: str, **kwargs: Any) -> HttpResponse:
+        status, headers, body = await self._lookup("GET", url, kwargs)
+        if body is None:
+            raw = b""
+        elif isinstance(body, bytes):
+            raw = body
+        elif isinstance(body, str):
+            raw = body.encode()
+        else:
+            raw = str(body).encode()
+        return HttpResponse(
+            status=status,
+            headers=headers,
+            body=raw,
+            url=url,
+            redirects=0,
+        )
 
     async def aclose(self) -> None:
         self.aclosed = True

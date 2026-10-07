@@ -14,6 +14,13 @@ from core.constants import VERSION
 
 runner = CliRunner()
 
+
+@pytest.fixture(autouse=True)
+def _no_network_modules(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep CLI scans offline: no real domain modules are registered in tests."""
+    monkeypatch.setattr("cli.main._engine_modules", lambda: [])
+
+
 VALID_PLUGIN = """
 from core.plugin_loader import PluginBase
 

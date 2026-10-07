@@ -117,12 +117,21 @@ NORMALIZE_CASES = [
 ]
 
 SELECT_CASES = [
-    (TargetType.DOMAIN, ScanMode.QUICK, None, ["domain"]),
+    (TargetType.DOMAIN, ScanMode.QUICK, None, ["dns", "http"]),
     (
         TargetType.DOMAIN,
         ScanMode.DEEP,
         None,
-        ["certificate", "domain", "news", "website"],
+        [
+            "certificate",
+            "dns",
+            "http",
+            "news",
+            "ssl",
+            "subdomain",
+            "website",
+            "whois",
+        ],
     ),
     (TargetType.IP, ScanMode.QUICK, None, ["ip"]),
     (TargetType.URL, ScanMode.QUICK, None, ["website"]),
@@ -134,13 +143,22 @@ SELECT_CASES = [
         {"website", "news"},
         ["news", "website"],
     ),
-    (TargetType.DOMAIN, ScanMode.QUICK, {"domain", "ghost"}, ["domain"]),
+    (TargetType.DOMAIN, ScanMode.QUICK, {"domain", "ghost"}, []),
     (TargetType.DOMAIN, ScanMode.QUICK, set(), []),
     (
         TargetType.DOMAIN,
         ScanMode.CUSTOM,
         None,
-        ["certificate", "domain", "news", "website"],
+        [
+            "certificate",
+            "dns",
+            "http",
+            "news",
+            "ssl",
+            "subdomain",
+            "website",
+            "whois",
+        ],
     ),
 ]
 

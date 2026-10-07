@@ -19,11 +19,21 @@ class FakeResponse:
     """aiohttp-like response returned by the scripted session."""
 
     def __init__(
-        self, status: int = 200, body: bytes = b"", json_payload: Any = None
+        self,
+        status: int = 200,
+        body: bytes = b"",
+        json_payload: Any = None,
+        *,
+        headers: dict[str, str] | None = None,
+        url: str = "",
+        history: list[Any] | None = None,
     ) -> None:
         self.status = status
         self.body = body
         self.json_payload = json_payload
+        self.headers = dict(headers or {})
+        self.url = url
+        self.history = list(history or [])
         self.closed = False
 
     async def __aenter__(self) -> FakeResponse:
@@ -138,6 +148,67 @@ async def test_final_server_error_raises() -> None:
     client = HttpClient(retries=0, session=ScriptedSession([FakeResponse(500, b"")]))
     with pytest.raises(_StatusError):
         await client.get("https://example.test/x")
+
+
+async def test_fetch_returns_response_without_raising() -> None:
+    client = HttpClient(
+        retries=0,
+        session=ScriptedSession(
+            [
+                FakeResponse(
+                    404,
+                    b"nope",
+                    headers={"content-type": "text/plain"},
+                    url="https://example.test/robots.txt",
+                )
+            ]
+        ),
+    )
+    resp = await client.fetch("https://example.test/robots.txt")
+    assert resp.status == 404
+    assert resp.headers == {"content-type": "text/plain"}
+    assert resp.text == "nope"
+    assert resp.url == "https://example.test/robots.txt"
+    assert resp.redirects == 0
+
+
+async def test_fetch_counts_redirects() -> None:
+    client = HttpClient(
+        retries=0,
+        session=ScriptedSession(
+            [FakeResponse(200, b"final", history=[object(), object()])]
+        ),
+    )
+    resp = await client.fetch("https://example.test/")
+    assert resp.status == 200
+    assert resp.redirects == 2
+
+
+async def test_fetch_retries_server_error_then_returns() -> None:
+    client = HttpClient(
+        retries=1,
+        session=ScriptedSession([FakeResponse(503, b""), FakeResponse(200, b"ok")]),
+    )
+    resp = await client.fetch("https://example.test/api")
+    assert resp.status == 200
+    assert resp.body == b"ok"
+    assert client.metrics.retries == 1
+
+
+async def test_fetch_returns_final_server_error_response() -> None:
+    client = HttpClient(retries=0, session=ScriptedSession([FakeResponse(500, b"")]))
+    resp = await client.fetch("https://example.test/api")
+    assert resp.status == 500
+
+
+async def test_fetch_gives_up_after_network_errors() -> None:
+    client = HttpClient(
+        retries=1,
+        session=ScriptedSession([TimeoutError(), TimeoutError()]),
+    )
+    with pytest.raises(TimeoutError):
+        await client.fetch("https://example.test/x")
+    assert client.metrics.failures == 1
 
 
 async def test_aclose_closes_session_once() -> None:

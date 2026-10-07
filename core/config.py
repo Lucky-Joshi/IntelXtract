@@ -59,9 +59,42 @@ DEFAULTS: dict[str, Any] = {
         "console": True,
     },
     "network": {
-        "user_agent": "IntelXtract/0.1.0 (OSINT research tool)",
+        "user_agent": "IntelXtract/0.1 (OSINT research tool)",
         "timeout": 30.0,
         "retries": 2,
+    },
+    "http": {
+        "timeout": 30.0,
+        "retries": 2,
+    },
+    "whois": {
+        "endpoint": "https://rdap.org/domain/",
+        "redact_emails": True,
+    },
+    "dns": {
+        "endpoint": "https://cloudflare-dns.com/dns-query",
+        "selectors": [
+            "default",
+            "google",
+            "selector1",
+            "selector2",
+            "selector3",
+            "dkim",
+            "mail",
+            "s1",
+            "s2",
+            "s3",
+            "2020",
+            "2021",
+            "pacman",
+        ],
+    },
+    "ssl": {
+        "timeout": 10.0,
+    },
+    "subdomain": {
+        "endpoint": "https://crt.sh",
+        "max_results": 500,
     },
 }
 
