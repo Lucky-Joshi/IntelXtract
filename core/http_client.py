@@ -113,19 +113,19 @@ class HttpClient:
             resp.raise_for_status()
             return await resp.json(content_type=None)
 
-    async def fetch(
+    async def request(
         self,
+        method: str,
         url: str,
         *,
         params: Mapping[str, Any] | None = None,
         allow_redirects: bool = True,
     ) -> HttpResponse:
-        """GET a URL and return its status/headers/body without raising.
+        """Send an arbitrary HTTP method and return a non-raising response.
 
-        Transient failures (408/429/5xx, timeouts, connection errors) are
-        retried; the final response is returned even for 4xx/5xx so callers
-        can react to status codes (e.g. a missing ``robots.txt``).  Only
-        exhausted network errors bubble up.
+        Behaves like :meth:`fetch` (retries 408/429/5xx and transient network
+        errors, returns the final 4xx/5xx response so callers can inspect it)
+        but lets modules probe methods such as ``OPTIONS`` or ``HEAD``.
         """
         session = await self._ensure_session()
         last_error: Exception | None = None
@@ -133,8 +133,11 @@ class HttpClient:
             should_raise = attempt >= self.retries
             self.metrics.requests += 1
             try:
-                async with session.get(
-                    url, params=params, allow_redirects=allow_redirects
+                async with session.request(
+                    method.upper(),
+                    url,
+                    params=params,
+                    allow_redirects=allow_redirects,
                 ) as resp:
                     if resp.status in (408, 429) or resp.status >= 500:
                         if not should_raise:
@@ -158,6 +161,24 @@ class HttpClient:
         if last_error is not None:
             raise last_error
         raise RuntimeError(f"request to {url!r} exhausted retries")
+
+    async def fetch(
+        self,
+        url: str,
+        *,
+        params: Mapping[str, Any] | None = None,
+        allow_redirects: bool = True,
+    ) -> HttpResponse:
+        """GET a URL and return its status/headers/body without raising.
+
+        Transient failures (408/429/5xx, timeouts, connection errors) are
+        retried; the final response is returned even for 4xx/5xx so callers
+        can react to status codes (e.g. a missing ``robots.txt``).  Only
+        exhausted network errors bubble up.
+        """
+        return await self.request(
+            "GET", url, params=params, allow_redirects=allow_redirects
+        )
 
     async def _request(self, method: str, url: str, **kwargs: Any) -> bytes:
         session = await self._ensure_session()

@@ -88,7 +88,10 @@ class FakeHttpClient:
         return body
 
     async def fetch(self, url: str, **kwargs: Any) -> HttpResponse:
-        status, headers, body = await self._lookup("GET", url, kwargs)
+        return await self.request("GET", url, **kwargs)
+
+    async def request(self, method: str, url: str, **kwargs: Any) -> HttpResponse:
+        status, headers, body = await self._lookup(method, url, kwargs)
         if body is None:
             raw = b""
         elif isinstance(body, bytes):

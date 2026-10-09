@@ -58,7 +58,7 @@ sub-phases that are small enough to implement and verify independently.
 | 7     | Module System              | D         | M    | [x]    |
 | 8     | Domain Module              | D         | L    | [x]    |
 | 9     | IP Module                  | D         | M    | [x]    |
-| 10    | Website Module             | D         | M    | [ ]    |
+| 10    | Website Module             | D         | M    | [x]    |
 | 11    | Email Module               | D         | M    | [ ]    |
 | 12    | Username Module            | D         | M    | [ ]    |
 | 13    | Certificate Module         | D         | M    | [ ]    |
@@ -361,19 +361,19 @@ when a source is unavailable (partial results + degraded status).
 
 **Objective:** Deep website profiling beyond Phase 8's checks.
 
-- [ ] S10.1 `modules/website/headers.py` — full response headers, server/
+- [x] S10.1 `modules/website/headers.py` — full response headers, server/
       powered-by disclosure, compression (gzip/brotli), cookies
       (flags: Secure/HttpOnly/SameSite)
-- [ ] S10.2 `modules/website/tech_stack.py` — CMS/framework/library detection
+- [x] S10.2 `modules/website/tech_stack.py` — CMS/framework/library detection
       from headers + HTML/JS signature rules (internal rule table, no
       third-party fingerprint API)
-- [ ] S10.3 `modules/website/favicon.py` — favicon fetch + hash
+- [x] S10.3 `modules/website/favicon.py` — favicon fetch + hash
       (mmh3-style fingerprint for external correlation)
-- [ ] S10.4 `modules/website/robots.py` — robots.txt parse (groups,
+- [x] S10.4 `modules/website/robots.py` — robots.txt parse (groups,
       disallow depth), sitemap.xml URL extraction (shared with Phase 8 fetch)
-- [ ] S10.5 `modules/website/http_methods.py` — OPTIONS/HEAD probe for
+- [x] S10.5 `modules/website/http_methods.py` — OPTIONS/HEAD probe for
       allowed methods, page title, content type
-- [ ] S10.6 Tests — HTML fixture corpus for the detection rules
+- [x] S10.6 Tests — HTML fixture corpus for the detection rules
 
 **Done criteria:** Tech detection matches fixtures; insecure cookie/method
 findings emitted with severity; tests green.

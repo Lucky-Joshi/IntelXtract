@@ -40,6 +40,26 @@ def geo_payload() -> dict[str, Any]:
     return cast(dict[str, Any], _load("geo.json"))
 
 
+def tech_html() -> str:
+    """Corpus page with WordPress/jQuery/Bootstrap markers (tech module)."""
+    return cast(str, (FIXTURE_DIR / "tech.html").read_text(encoding="utf-8"))
+
+
+def robots_txt() -> str:
+    """robots.txt exercising group/disallow parsing (robots module)."""
+    return cast(str, (FIXTURE_DIR / "robots.txt").read_text(encoding="utf-8"))
+
+
+def sitemap_xml() -> str:
+    """sitemap.xml with three <loc> entries (robots module)."""
+    return cast(str, (FIXTURE_DIR / "sitemap.xml").read_text(encoding="utf-8"))
+
+
+def favicon_bytes() -> bytes:
+    """Deterministic favicon payload for fingerprint tests."""
+    return b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR" + b"idat-corpus-icon" * 8
+
+
 def doh_answer(data: str, *, rtype: int = 1, name: str = "") -> dict[str, Any]:
     """Build a minimal DoH JSON response carrying one answer record."""
     return cast(

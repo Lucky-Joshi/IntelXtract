@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /private/passwords.txt
+Allow: /public/
+Crawl-delay: 10
+Sitemap: https://example.com/sitemap.xml

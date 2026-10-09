@@ -25,6 +25,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   path), forward-confirmed and mismatched reverse records, clean/listed/
   IPv6 DNSBL, keyed and keyless AbuseIPDB, offline degradation, and IPv4 +
   IPv6 deep scans persisted end-to-end into SQLite.
+- Phase 10 — website module: five collectors under `modules/website/`.
+  `headers.py` profiles the final response (server/X-Powered-By disclosure →
+  MEDIUM, compression, six security headers present/missing, cookie flags
+  Secure/HttpOnly/SameSite with insecure cookie findings by severity).
+  `tech_stack.py` fingerprints CMS/frameworks/libs from headers, cookies, and
+  HTML against an internal signature table (WordPress, Drupal, Joomla,
+  nginx, Apache, Cloudflare, Django, Laravel, React, Vue, jQuery, Bootstrap,
+  Webpack, Gatsby). `favicon.py` fingerprints `/favicon.ico` as
+  FNV-1a(base64(md5(icon))) for external cross-site correlation. `robots.py`
+  parses robots.txt into user-agent groups (allow/disallow/crawl-delay,
+  max disallow depth) and extracts sitemap URLs from robots-declared and
+  `/sitemap.xml`. `http_methods.py` probes OPTIONS/HEAD/GET for allowed
+  methods (TRACE → MEDIUM), page title, and content type; a new
+  `HttpClient.request(method, …)`/`BaseModule.http_fetch` supports the
+  non-GET probes with the same non-raising retry semantics. URL quick depth
+  now selects headers + http_methods and the deep profile selects all five
+  website collectors (plus domain/certificate); CLI/engine register them.
+  Tests use an HTML fixture corpus (`tech.html`, `robots.txt`, `sitemap.xml`,
+  favicon bytes) covering detection, cookie parsing, missing-protection and
+  TRACE severities, and IPv4/IPv6-styled deep scans persisted to SQLite.
 - Phase 0 — brand identity (`assets/logo.svg`, `assets/icon.svg`),
   `docs/brand/BRAND.md`, coding standards, git workflow, threat model, and
   privacy statement; folder architecture skeleton.

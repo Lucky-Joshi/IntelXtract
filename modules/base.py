@@ -17,6 +17,7 @@ from typing import Any, ParamSpec, TypeVar
 
 from core.constants import TargetType
 from core.engine import ModuleContext
+from core.http_client import HttpResponse
 from core.models import ModuleResult
 
 T = TypeVar("T")
@@ -105,3 +106,19 @@ class BaseModule(ABC):
         if ctx.http is None:
             raise RuntimeError(f"{self.name} requires ctx.http to perform requests")
         return await ctx.http.get_text(url, **kwargs)
+
+    async def http_fetch(
+        self,
+        ctx: ModuleContext,
+        url: str,
+        *,
+        method: str = "GET",
+        params: Mapping[str, Any] | None = None,
+        allow_redirects: bool = True,
+    ) -> HttpResponse:
+        """Convenience: send a request and return a non-raising response."""
+        if ctx.http is None:
+            raise RuntimeError(f"{self.name} requires ctx.http to perform requests")
+        return await ctx.http.request(
+            method, url, params=params, allow_redirects=allow_redirects
+        )

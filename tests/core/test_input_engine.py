@@ -135,7 +135,7 @@ SELECT_CASES = [
     ),
     (TargetType.IP, ScanMode.QUICK, None, ["geo", "rdns"]),
     (TargetType.IP, ScanMode.DEEP, None, ["geo", "rdns", "reputation"]),
-    (TargetType.URL, ScanMode.QUICK, None, ["website"]),
+    (TargetType.URL, ScanMode.QUICK, None, ["headers", "http_methods"]),
     (TargetType.HASH, ScanMode.QUICK, None, []),
     (TargetType.UNKNOWN, ScanMode.DEEP, None, []),
     (
@@ -245,5 +245,9 @@ def test_select_modules_custom_reuses_deep_profile() -> None:
     assert select_modules(TargetType.URL, "custom") == [
         "certificate",
         "domain",
-        "website",
+        "favicon",
+        "headers",
+        "http_methods",
+        "robots",
+        "tech",
     ]

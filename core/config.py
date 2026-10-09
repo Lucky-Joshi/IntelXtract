@@ -108,6 +108,10 @@ DEFAULTS: dict[str, Any] = {
         "dnsbl_zone": "zen.spamhaus.org",
         "abuseipdb_endpoint": "https://api.abuseipdb.com/api/v2/check",
     },
+    "website": {
+        "favicon_path": "/favicon.ico",
+        "max_body_size": 262_144,
+    },
 }
 
 
