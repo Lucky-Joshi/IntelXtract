@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Phase 9 — IP module: three collectors under `modules/ip/`. `geo.py`
+  resolves coarse location plus ISP/ASN/organization from the keyless
+  ip-api.org endpoint and caches successful lookups in the engine cache for
+  ``geo.cache_ttl`` (default 24h). `rdns.py` performs reverse DNS over
+  DNS-over-HTTPS for both IPv4 (`in-addr.arpa`) and IPv6 (`ip6.arpa`) and
+  re-resolves each PTR hostname for a forward-confirmed (FCrDNS) match.
+  `reputation.py` probes the Spamhaus ZEN DNSBL (delisting codes
+  127.0.0.2-11 classified as SBL/XBL/CSS/PBL) over DoH and, only when an
+  ``abuseipdb`` API key is configured, checks AbuseIPDB report score. IPv6
+  targets are reported as out-of-scope for the IPv4-only DNSBL. Every data
+  source degrades to a LOW finding / ``degraded`` state instead of failing
+  the scan; the quick/deep IP selection maps now list the three modules and
+  the CLI/engine register them. Tests cover cached geo lookups (cache-hit
+  path), forward-confirmed and mismatched reverse records, clean/listed/
+  IPv6 DNSBL, keyed and keyless AbuseIPDB, offline degradation, and IPv4 +
+  IPv6 deep scans persisted end-to-end into SQLite.
 - Phase 0 — brand identity (`assets/logo.svg`, `assets/icon.svg`),
   `docs/brand/BRAND.md`, coding standards, git workflow, threat model, and
   privacy statement; folder architecture skeleton.

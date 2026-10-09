@@ -117,7 +117,7 @@ def _engine_modules() -> list[Any]:
     scan, matching the fail-soft philosophy of the plugin loader.
     """
     try:
-        registry = ModuleRegistry(packages=("modules.domain",))
+        registry = ModuleRegistry(packages=("modules.domain", "modules.ip"))
         return registry.instances()
     except Exception as exc:  # fail-soft: keep scans usable offline
         console.print(f"[yellow]warning:[/yellow] module discovery failed: {exc}")

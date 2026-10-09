@@ -57,7 +57,7 @@ sub-phases that are small enough to implement and verify independently.
 | 6     | Input Engine               | D         | S    | [x]    |
 | 7     | Module System              | D         | M    | [x]    |
 | 8     | Domain Module              | D         | L    | [x]    |
-| 9     | IP Module                  | D         | M    | [ ]    |
+| 9     | IP Module                  | D         | M    | [x]    |
 | 10    | Website Module             | D         | M    | [ ]    |
 | 11    | Email Module               | D         | M    | [ ]    |
 | 12    | Username Module            | D         | M    | [ ]    |
@@ -342,13 +342,13 @@ modules land) produces WHOIS/DNS/SSL/subdomain/HTTP findings; tests green.
 
 **Objective:** IP address intelligence.
 
-- [ ] S9.1 `modules/ip/geo.py` — ASN, ISP, country/region/city (coarse),
+- [x] S9.1 `modules/ip/geo.py` — ASN, ISP, country/region/city (coarse),
       organization; free API with cache + graceful degradation offline
-- [ ] S9.2 `modules/ip/rdns.py` — reverse DNS (v4/v6), forward-confirmed
+- [x] S9.2 `modules/ip/rdns.py` — reverse DNS (v4/v6), forward-confirmed
       lookup
-- [ ] S9.3 `modules/ip/reputation.py` — authorized/conservative sources only
+- [x] S9.3 `modules/ip/reputation.py` — authorized/conservative sources only
       (e.g., Spamhaus ZEN DNSBL, optional AbuseIPDB when key present)
-- [ ] S9.4 Tests — mocked API/DNSBL responses, cache-hit paths
+- [x] S9.4 Tests — mocked API/DNSBL responses, cache-hit paths
 
 **Done criteria:** IPv4 and IPv6 targets scan end-to-end; no scan fails hard
 when a source is unavailable (partial results + degraded status).

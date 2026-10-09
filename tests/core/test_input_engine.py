@@ -133,7 +133,8 @@ SELECT_CASES = [
             "whois",
         ],
     ),
-    (TargetType.IP, ScanMode.QUICK, None, ["ip"]),
+    (TargetType.IP, ScanMode.QUICK, None, ["geo", "rdns"]),
+    (TargetType.IP, ScanMode.DEEP, None, ["geo", "rdns", "reputation"]),
     (TargetType.URL, ScanMode.QUICK, None, ["website"]),
     (TargetType.HASH, ScanMode.QUICK, None, []),
     (TargetType.UNKNOWN, ScanMode.DEEP, None, []),
@@ -198,7 +199,7 @@ def test_parse_target_round_trip_is_immutable() -> None:
 
 
 def test_parse_target_accepts_string_modes() -> None:
-    assert select_modules(TargetType.IP, "deep") == ["ip"]
+    assert select_modules(TargetType.IP, "deep") == ["geo", "rdns", "reputation"]
 
 
 def test_parse_target_rejects_blank() -> None:

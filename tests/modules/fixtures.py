@@ -35,6 +35,22 @@ def crt_payload() -> list[dict[str, Any]]:
     return cast(list[dict[str, Any]], _load("crt.json"))
 
 
+def geo_payload() -> dict[str, Any]:
+    """ip-api.org success payload for ``1.1.1.1`` (geo module)."""
+    return cast(dict[str, Any], _load("geo.json"))
+
+
+def doh_answer(data: str, *, rtype: int = 1, name: str = "") -> dict[str, Any]:
+    """Build a minimal DoH JSON response carrying one answer record."""
+    return cast(
+        dict[str, Any],
+        {
+            "Status": 0,
+            "Answer": [{"name": name, "type": rtype, "TTL": 60, "data": data}],
+        },
+    )
+
+
 def doh_handler() -> StubHandler:
     """DoH JSON responses keyed by ``(name, type)`` query pair (dns module)."""
     table: dict[tuple[str, str], dict[str, Any]] = {}
