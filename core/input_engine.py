@@ -61,7 +61,7 @@ _USERNAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{1,31}$")
 
 _QUICK_MODULES: dict[TargetType, tuple[str, ...]] = {
     TargetType.DOMAIN: ("dns", "http"),
-    TargetType.IP: ("ip",),
+    TargetType.IP: ("geo", "rdns"),
     TargetType.URL: ("website",),
     TargetType.EMAIL: ("email",),
     TargetType.USERNAME: ("username",),
@@ -81,7 +81,7 @@ _DEEP_MODULES: dict[TargetType, tuple[str, ...]] = {
         "certificate",
         "news",
     ),
-    TargetType.IP: ("ip",),
+    TargetType.IP: ("geo", "rdns", "reputation"),
     TargetType.URL: ("website", "domain", "certificate"),
     TargetType.EMAIL: ("email", "domain"),
     TargetType.USERNAME: ("username",),

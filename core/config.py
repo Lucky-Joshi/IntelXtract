@@ -96,6 +96,18 @@ DEFAULTS: dict[str, Any] = {
         "endpoint": "https://crt.sh",
         "max_results": 500,
     },
+    "geo": {
+        "endpoint": "http://ip-api.com/json/",
+        "cache_ttl": 86400.0,
+    },
+    "rdns": {
+        "endpoint": "https://cloudflare-dns.com/dns-query",
+    },
+    "reputation": {
+        "endpoint": "https://cloudflare-dns.com/dns-query",
+        "dnsbl_zone": "zen.spamhaus.org",
+        "abuseipdb_endpoint": "https://api.abuseipdb.com/api/v2/check",
+    },
 }
 
 
