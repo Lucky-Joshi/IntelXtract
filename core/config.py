@@ -118,6 +118,13 @@ DEFAULTS: dict[str, Any] = {
         "breach_endpoint": "https://haveibeenpwned.com/api/v3/breachedaccount/",
         "disposable_extra": [],
     },
+    "username": {
+        "concurrency": 8,
+        "per_site_interval": 1.0,
+        "sites_path": "",
+        "sites_extra": [],
+        "enrich_github": True,
+    },
     "api_keys": {},
 }
 

@@ -60,7 +60,7 @@ sub-phases that are small enough to implement and verify independently.
 | 9     | IP Module                  | D         | M    | [x]    |
 | 10    | Website Module             | D         | M    | [x]    |
 | 11    | Email Module               | D         | M    | [x]    |
-| 12    | Username Module            | D         | M    | [ ]    |
+| 12    | Username Module            | D         | M    | [x]    |
 | 13    | Certificate Module         | D         | M    | [ ]    |
 | 14    | Metadata Module            | D         | M    | [ ]    |
 | 15    | News Module                | D         | S    | [ ]    |
@@ -407,14 +407,14 @@ missing API keys produce "skipped" status, not errors.
 
 **Objective:** Public username presence checks.
 
-- [ ] S12.1 Site pattern list — `modules/username/sites.json` (name, URL
+- [x] S12.1 Site pattern list — `modules/username/sites.json` (name, URL
       template, response rule: status code / body marker)
-- [ ] S12.2 `modules/username/social.py` — async batch probe of profile URLs,
+- [x] S12.2 `modules/username/social.py` — async batch probe of profile URLs,
       existence verdict per site (conservative: unknown ≠ not-found)
-- [ ] S12.3 Enrichment — where publicly exposed without auth: avatar URL,
+- [x] S12.3 Enrichment — where publicly exposed without auth: avatar URL,
       display name, bio, profile URL; parse-light (no scraping beyond public
       profile page, respects robots/rate limits)
-- [ ] S12.4 Tests — mocked responses per verdict type (exists/missing/blocked)
+- [x] S12.4 Tests — mocked responses per verdict type (exists/missing/blocked)
 
 **Done criteria:** 30+ sites probed concurrently with per-site rate limits;
 verdicts tested; blocked sites reported as `unknown`.

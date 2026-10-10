@@ -62,6 +62,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   email + breach + domain; quick selects the email collector. Tests cover
   syntax/blocklist units, mocked DoH+avatar+HIBP probes (200/404/401/503/
   transport), and quick/deep engine scans persisted to SQLite.
+- Phase 12 — username module: presence checks across 36 bundled public
+  profile sites (`modules/username/sites.json` with per-site status/marker
+  rules; operator sites via `username.sites_extra` or a full
+  `username.sites_path` override). `social.py` probes sites concurrently with
+  a global semaphore plus per-site request pacing, resolving each verdict
+  conservatively: only conclusive status codes or body markers yield
+  exists/missing, anything else (redirects, bot walls, 5xx) is `unknown`.
+  `enrichment.py` parse-lightly pulls the public GitHub profile (avatar,
+  display name, bio, stats) when the account exists; blocks/rate limits
+  quietly skip it. The registered `username` collector emits an INFO finding
+  per confirmed profile plus a `Username: profile summary` aggregate, and
+  marks the run `degraded` (LOW finding) when every verdict is unknown.
+  Tests cover registry validation, exists/missing/blocked/odd-status verdicts,
+  marker precedence (Instagram-style 200 + missing-marker), enrichment
+  failure modes, and mocked quick scans persisted to SQLite.
 - Phase 0 — brand identity (`assets/logo.svg`, `assets/icon.svg`),
   `docs/brand/BRAND.md`, coding standards, git workflow, threat model, and
   privacy statement; folder architecture skeleton.

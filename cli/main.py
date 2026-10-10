@@ -123,6 +123,7 @@ def _engine_modules() -> list[Any]:
                 "modules.ip",
                 "modules.website",
                 "modules.email",
+                "modules.username",
             )
         )
         return registry.instances()
