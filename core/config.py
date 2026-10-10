@@ -112,6 +112,13 @@ DEFAULTS: dict[str, Any] = {
         "favicon_path": "/favicon.ico",
         "max_body_size": 262_144,
     },
+    "email": {
+        "dns_endpoint": "https://cloudflare-dns.com/dns-query",
+        "gravatar_endpoint": "https://www.gravatar.com/avatar/",
+        "breach_endpoint": "https://haveibeenpwned.com/api/v3/breachedaccount/",
+        "disposable_extra": [],
+    },
+    "api_keys": {},
 }
 
 

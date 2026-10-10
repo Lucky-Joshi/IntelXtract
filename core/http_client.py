@@ -119,13 +119,15 @@ class HttpClient:
         url: str,
         *,
         params: Mapping[str, Any] | None = None,
+        headers: Mapping[str, str] | None = None,
         allow_redirects: bool = True,
     ) -> HttpResponse:
         """Send an arbitrary HTTP method and return a non-raising response.
 
         Behaves like :meth:`fetch` (retries 408/429/5xx and transient network
         errors, returns the final 4xx/5xx response so callers can inspect it)
-        but lets modules probe methods such as ``OPTIONS`` or ``HEAD``.
+        but lets modules probe methods such as ``OPTIONS`` or ``HEAD`` and
+        attach extra ``headers`` (e.g. API keys).
         """
         session = await self._ensure_session()
         last_error: Exception | None = None
@@ -137,6 +139,7 @@ class HttpClient:
                     method.upper(),
                     url,
                     params=params,
+                    headers=headers,
                     allow_redirects=allow_redirects,
                 ) as resp:
                     if resp.status in (408, 429) or resp.status >= 500:
@@ -167,6 +170,7 @@ class HttpClient:
         url: str,
         *,
         params: Mapping[str, Any] | None = None,
+        headers: Mapping[str, str] | None = None,
         allow_redirects: bool = True,
     ) -> HttpResponse:
         """GET a URL and return its status/headers/body without raising.
@@ -177,7 +181,11 @@ class HttpClient:
         exhausted network errors bubble up.
         """
         return await self.request(
-            "GET", url, params=params, allow_redirects=allow_redirects
+            "GET",
+            url,
+            params=params,
+            headers=headers,
+            allow_redirects=allow_redirects,
         )
 
     async def _request(self, method: str, url: str, **kwargs: Any) -> bytes:

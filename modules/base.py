@@ -114,11 +114,16 @@ class BaseModule(ABC):
         *,
         method: str = "GET",
         params: Mapping[str, Any] | None = None,
+        headers: Mapping[str, str] | None = None,
         allow_redirects: bool = True,
     ) -> HttpResponse:
         """Convenience: send a request and return a non-raising response."""
         if ctx.http is None:
             raise RuntimeError(f"{self.name} requires ctx.http to perform requests")
         return await ctx.http.request(
-            method, url, params=params, allow_redirects=allow_redirects
+            method,
+            url,
+            params=params,
+            headers=headers,
+            allow_redirects=allow_redirects,
         )

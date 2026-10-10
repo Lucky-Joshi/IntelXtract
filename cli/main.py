@@ -118,7 +118,12 @@ def _engine_modules() -> list[Any]:
     """
     try:
         registry = ModuleRegistry(
-            packages=("modules.domain", "modules.ip", "modules.website")
+            packages=(
+                "modules.domain",
+                "modules.ip",
+                "modules.website",
+                "modules.email",
+            )
         )
         return registry.instances()
     except Exception as exc:  # fail-soft: keep scans usable offline

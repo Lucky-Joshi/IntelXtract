@@ -91,7 +91,7 @@ _DEEP_MODULES: dict[TargetType, tuple[str, ...]] = {
         "domain",
         "certificate",
     ),
-    TargetType.EMAIL: ("email", "domain"),
+    TargetType.EMAIL: ("email", "breach", "domain"),
     TargetType.USERNAME: ("username",),
     TargetType.HASH: (),
     TargetType.FILE: ("metadata",),

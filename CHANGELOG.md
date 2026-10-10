@@ -45,6 +45,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Tests use an HTML fixture corpus (`tech.html`, `robots.txt`, `sitemap.xml`,
   favicon bytes) covering detection, cookie parsing, missing-protection and
   TRACE severities, and IPv4/IPv6-styled deep scans persisted to SQLite.
+- Phase 11 — email module: address classification via `modules/email/`.
+  `validation.py` syntax-checks, splits local/domain, and flags disposable
+  providers against a bundled blocklist (extendable via
+  `email.disposable_extra`). `mx.py` probes mail infrastructure over the
+  shared DoH endpoint: MX presence with host A-resolution, SPF
+  (includes + all-qualifier) and DMARC (policy/pct) parsing. `gravatar.py`
+  probes the public avatar endpoint with `d=404` for existence. The two
+  registered collectors are `EmailModule` ("email", validation + MX/SPF/DMARC
+  + Gravatar with per-stage degradation to low-severity findings) and
+  `BreachModule` ("breach", HIBP v3, `requires_keys=("hibp",)`). A missing
+  API key emits a planner-level "skipped" run instead of an error, per the
+  done criteria; unauthorized keys surface a MEDIUM finding. New
+  `HttpClient.request`/`fetch`/`BaseModule.http_fetch` accept extra `headers`
+  (for the HIBP API key). EMAIL deep profile selects
+  email + breach + domain; quick selects the email collector. Tests cover
+  syntax/blocklist units, mocked DoH+avatar+HIBP probes (200/404/401/503/
+  transport), and quick/deep engine scans persisted to SQLite.
 - Phase 0 — brand identity (`assets/logo.svg`, `assets/icon.svg`),
   `docs/brand/BRAND.md`, coding standards, git workflow, threat model, and
   privacy statement; folder architecture skeleton.

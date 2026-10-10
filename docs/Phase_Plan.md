@@ -59,7 +59,7 @@ sub-phases that are small enough to implement and verify independently.
 | 8     | Domain Module              | D         | L    | [x]    |
 | 9     | IP Module                  | D         | M    | [x]    |
 | 10    | Website Module             | D         | M    | [x]    |
-| 11    | Email Module               | D         | M    | [ ]    |
+| 11    | Email Module               | D         | M    | [x]    |
 | 12    | Username Module            | D         | M    | [ ]    |
 | 13    | Certificate Module         | D         | M    | [ ]    |
 | 14    | Metadata Module            | D         | M    | [ ]    |
@@ -386,15 +386,15 @@ findings emitted with severity; tests green.
 
 **Objective:** Email address intelligence within API terms.
 
-- [ ] S11.1 `modules/email/validation.py` — syntax, domain existence,
+- [x] S11.1 `modules/email/validation.py` — syntax, domain existence,
       disposable-domain blocklist (bundled list, updatable)
-- [ ] S11.2 `modules/email/mx.py` — MX presence, SPF/DMARC on the domain,
+- [x] S11.2 `modules/email/mx.py` — MX presence, SPF/DMARC on the domain,
       MX host resolution
-- [ ] S11.3 `modules/email/gravatar.py` — Gravatar existence via MD5 hash
+- [x] S11.3 `modules/email/gravatar.py` — Gravatar existence via MD5 hash
       probe (public endpoint)
-- [ ] S11.4 `modules/email/breach.py` — breach checks only where the provider
+- [x] S11.4 `modules/email/breach.py` — breach checks only where the provider
       permits API use (key-gated, e.g., HIBP); graceful skip when no key
-- [ ] S11.5 Tests — syntax/blocklist unit tests, mocked network probes
+- [x] S11.5 Tests — syntax/blocklist unit tests, mocked network probes
 
 **Done criteria:** Valid/invalid/disposable inputs classified correctly;
 missing API keys produce "skipped" status, not errors.
