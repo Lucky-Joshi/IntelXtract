@@ -35,7 +35,10 @@ EVIDENCE_LIMIT = 6
 
 def _iso(value: Any) -> str | None:
     if isinstance(value, (int, float)):
-        return _dt.datetime.fromtimestamp(float(value)).isoformat()
+        moment = _dt.datetime.fromtimestamp(float(value), tz=_dt.UTC).replace(
+            tzinfo=None
+        )
+        return moment.isoformat()
     return str(value) if value else None
 
 
@@ -44,9 +47,12 @@ def _epoch(value: Any) -> float | None:
         return float(value)
     if isinstance(value, str):
         try:
-            return _dt.datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
+            moment = _dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
         except ValueError:
             return None
+        if moment.tzinfo is None:
+            moment = moment.replace(tzinfo=_dt.UTC)
+        return moment.timestamp()
     return None
 
 

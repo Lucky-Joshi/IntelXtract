@@ -79,11 +79,18 @@ class EngineBridge(QObject):
         self._modules_request.emit()
 
     def shutdown(self) -> None:
-        """Stop the worker thread and close the asyncio loop."""
+        """Stop the worker thread, close the database, then the asyncio loop."""
         self._thread.quit()
         self._thread.wait(5000)
-        if self._loop is not None and not self._loop.is_closed():
-            self._loop.close()
+        loop = self._loop
+        if loop is not None and not loop.is_closed():
+            if self._db is not None:
+                try:
+                    loop.run_until_complete(self._db.close())
+                except Exception:  # pragma: no cover - defensive cleanup
+                    _log.exception("failed to close engine bridge database")
+            loop.close()
+        self._db = None
         self._loop = None
 
     @Slot(str, str, object)
