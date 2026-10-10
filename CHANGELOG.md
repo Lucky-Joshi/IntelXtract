@@ -1,4 +1,14 @@
 
+### Phase 19 — Reporting
+
+- `reports/brand.py` — brand tokens parsed from `BRAND.md` (accent, page/card background, text, muted, border) with defaults; `BRAND.md` added at repo root as the visual source of truth (S19.2).
+- `reports/builder.py` — shared `ReportModel`: executive summary, severity counts, module counts, timeline, evidence refs (top-EVIDENCE_LIMIT, critical-first), methodology; deterministically re-derives correlation (`TargetType`-coerced) and risk from findings so persisted pre-P16/P17 scans still get full reports; fixed `generated_at` support for stable snapshots.
+- `reports/exporter.py` — `export_report()` for `json|html|csv|md|pdf`: JSON = canonical model, CSV = one row per finding (critical-first), Markdown = one-file report, HTML = Jinja2 template rendered from brand tokens, PDF = WeasyPrint when its system libraries exist, otherwise a print-friendly HTML fallback with an explicit warning (never fails).
+- `templates/report.html.j2` — single template with an on-screen styled mode and a print-mode CSS switching to plain black-on-white; sections: brand header, executive summary, risk overview with per-category bars + rule trace, severity-grouped findings table, module counts, timeline, methodology/evidence, timestamped footer.
+- `cli/report` — replaced the JSON stub: every format (`--format`) writes bytes to `exports/report-<id>.<ext>` or `--out`, prints format/fallback warnings, and registers the report in the `reports` table (S19.5).
+- `gui/pages/reports.py` — points users at the CLI formats instead of implying later GUI-only generation.
+- Tests: golden JSON snapshot (`tests/reports/golden/report.json`), model section/ordering tests, determinism, CSV row counts incl. empty case, Markdown sections, HTML brand/section markers, PDF fallback (WeasyPrint absent) + fake-weasyprint byte path, unsupported-format raise, CLI JSON round-trip + parametrized format loop + PDF-fallback file/warning checks.
+
 ### Phase 16 — Correlation Engine
 
 - `core/entities.py` — stable entity model (10 kinds, normalized value hash IDs) + per-module extractors over `Finding.data`.

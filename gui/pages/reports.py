@@ -49,7 +49,10 @@ class ReportsPage(Page):
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.body.addWidget(self.table, stretch=1)
 
-        note = QLabel("Reports are generated from the CLI or later GUI actions.")
+        note = QLabel(
+            "Generate reports from the CLI: `intelxtract report <id> "
+            "--format json|html|pdf|csv|md`."
+        )
         note.setObjectName("muted")
         self.body.addWidget(note)
 

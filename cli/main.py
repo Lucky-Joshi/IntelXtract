@@ -45,6 +45,7 @@ from database.migrations import migrate
 from database.persistence import make_result_sink
 from database.repositories import Repositories, ScanRecord
 from modules.registry import ModuleRegistry
+from reports import build_report, export_report
 
 console = Console()
 err_console = Console(stderr=True)
@@ -181,20 +182,16 @@ def _registry(cfg: Config) -> PluginRegistry:
     return PluginRegistry(directory)
 
 
-def _default_report_path(cfg: Config, scan_id: int, output_format: str) -> Path:
+def _default_report_path(cfg: Config, scan_id: int, extension: str) -> Path:
     """Default export path for a scan report: ``exports/report-<id>.<ext>``."""
     exports = Path(str(cfg.get("paths.exports_dir", "exports"))).expanduser()
-    ext = "json" if output_format == "json" else output_format
-    return exports / f"report-{scan_id}.{ext}"
+    return exports / f"report-{scan_id}.{extension}"
 
 
-def _write_report_file(out_path: Path, payload: dict[str, Any]) -> None:
-    """Write a report payload to disk (sync helper for thread offload)."""
+def _write_report_bytes(out_path: Path, data: bytes) -> None:
+    """Write report bytes to disk (sync helper for thread offload)."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False, default=str) + "\n",
-        encoding="utf-8",
-    )
+    out_path.write_bytes(data)
 
 
 def _resolve_db_path(raw: str) -> str:
@@ -359,7 +356,7 @@ def report(
         "json",
         "--format",
         "-f",
-        help="Report format: json|html|pdf|csv|md (non-json are Phase 19 stubs).",
+        help="Report format: json|html|pdf|csv|md.",
     ),
     out: Path | None = typer.Option(None, "--out", help="Output file path."),
     db: str | None = typer.Option(None, "--db", help="Override the database path."),
@@ -401,31 +398,32 @@ async def _report(
             "findings": [
                 {
                     "module": finding.module,
+                    "title": finding.title,
                     "severity": finding.severity,
                     "confidence": finding.confidence,
                     "data": finding.data,
+                    "evidence": finding.evidence,
                     "created_at": finding.created_at,
                 }
                 for finding in findings
             ],
         }
-        if output_format != "json":
-            payload = {"stub": True, "requested_format": output_format, **payload}
-            err_console.print(
-                f"[yellow]note:[/yellow] format {output_format!r} lands in"
-                " Phase 19; writing JSON stub"
-            )
+        model = build_report(payload["scan"], payload["target"], payload["findings"])
+        exported = await asyncio.to_thread(export_report, model, output_format)
+        if exported.warning:
+            err_console.print(f"[yellow]warning:[/yellow] {exported.warning}")
+        extension = "pdf" if exported.format == "pdf" else exported.format
         if out is not None:
             out_path = out
         else:
             out_path = await asyncio.to_thread(
-                _default_report_path, cfg, scan.id, output_format
+                _default_report_path, cfg, scan.id, extension
             )
-        await asyncio.to_thread(_write_report_file, out_path, payload)
+        await asyncio.to_thread(_write_report_bytes, out_path, exported.data)
         await repos.reports.create(scan.id, str(out_path), output_format)
         console.print(
             f"report written to [bold]{out_path}[/bold]"
-            f" (requested format: {output_format})"
+            f" (format: {output_format}; output: {exported.format})"
         )
     finally:
         await db.close()

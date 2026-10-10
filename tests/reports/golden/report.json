@@ -1,0 +1,266 @@
+{
+  "generated_at": "2026-10-10T12:00:00",
+  "app": {
+    "name": "IntelXtract",
+    "version": "0.1.0a0"
+  },
+  "scan": {
+    "id": 7,
+    "uuid": "u7",
+    "mode": "deep",
+    "status": "completed",
+    "started_at": "2024-03-08T00:10:00",
+    "finished_at": "2024-03-08T00:11:00",
+    "duration": 60.0,
+    "error": null,
+    "runs": [
+      {
+        "module": "dns",
+        "status": "ok",
+        "duration": 0.5
+      }
+    ]
+  },
+  "target": {
+    "value": "example.com",
+    "type": "domain"
+  },
+  "findings": [
+    {
+      "module": "ssl",
+      "title": "SSL: certificate expired",
+      "severity": "high",
+      "confidence": 0.95,
+      "data": {
+        "host": "example.com"
+      },
+      "evidence": "notAfter < now",
+      "created_at": null
+    },
+    {
+      "module": "headers",
+      "title": "Headers: strict-transport-security missing",
+      "severity": "low",
+      "confidence": 0.9,
+      "data": {
+        "header": "strict-transport-security"
+      },
+      "evidence": "strict-transport-security header absent",
+      "created_at": null
+    },
+    {
+      "module": "dns",
+      "title": "DNS: no DMARC record",
+      "severity": "low",
+      "confidence": 0.8,
+      "data": {
+        "domain": "example.com"
+      },
+      "evidence": "no v=DMARC1 TXT record",
+      "created_at": null
+    },
+    {
+      "module": "news",
+      "title": "News: timeline",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "articles": [
+          {
+            "title": "Story A",
+            "published": "2024-03-01T08:00:00+00:00",
+            "url": "https://p.example/a",
+            "source": "Publisher"
+          },
+          {
+            "title": "Story A",
+            "published": "2024-03-01T08:00:00+00:00",
+            "url": "https://p.example/a",
+            "source": "Publisher"
+          }
+        ]
+      },
+      "evidence": "2 article(s)",
+      "created_at": null
+    }
+  ],
+  "correlation": {
+    "target": "example.com",
+    "target_type": "domain",
+    "entities": [
+      {
+        "id": "domain:a379a6f6eeaf",
+        "kind": "domain",
+        "value": "example.com",
+        "count": 3
+      },
+      {
+        "id": "domain:b7cba83e9e34",
+        "kind": "domain",
+        "value": "p.example",
+        "count": 3
+      },
+      {
+        "id": "organization:140bedbf9c3f",
+        "kind": "organization",
+        "value": "none",
+        "count": 1
+      }
+    ],
+    "edges": [
+      {
+        "source": "domain:b7cba83e9e34",
+        "target": "domain:a379a6f6eeaf",
+        "type": "mentions",
+        "confidence": 0.4
+      },
+      {
+        "source": "domain:b7cba83e9e34",
+        "target": "domain:a379a6f6eeaf",
+        "type": "mentions",
+        "confidence": 0.4
+      }
+    ],
+    "stats": {
+      "entities": 3,
+      "edges": 2,
+      "components": 2
+    }
+  },
+  "risk": {
+    "target": "example.com",
+    "score": 50.0,
+    "rating": "high",
+    "categories": {
+      "TLS": {
+        "score": 35.0,
+        "rules": 1
+      },
+      "HEADERS": {
+        "score": 9.0,
+        "rules": 1
+      },
+      "DNS": {
+        "score": 6.0,
+        "rules": 1
+      },
+      "EXPOSURE": {
+        "score": 0,
+        "rules": 0
+      }
+    },
+    "rules": [
+      {
+        "rule_id": "tls_cert_expired",
+        "category": "TLS",
+        "label": "TLS certificate has expired",
+        "points": 35.0,
+        "finding": {
+          "module": "ssl",
+          "title": "SSL: certificate expired"
+        }
+      },
+      {
+        "rule_id": "headers_hsts",
+        "category": "HEADERS",
+        "label": "Strict-Transport-Security header missing",
+        "points": 9.0,
+        "finding": {
+          "module": "headers",
+          "title": "Headers: strict-transport-security missing"
+        }
+      },
+      {
+        "rule_id": "dns_no_dmarc",
+        "category": "DNS",
+        "label": "No DMARC record published",
+        "points": 6.0,
+        "finding": {
+          "module": "dns",
+          "title": "DNS: no DMARC record"
+        }
+      }
+    ],
+    "summary": [
+      "Overall risk: HIGH (50/100). significant weaknesses found; 3 contributing finding(s).",
+      "[TLS] TLS certificate has expired (+35)",
+      "[HEADERS] Strict-Transport-Security header missing (+9)",
+      "[DNS] No DMARC record published (+6)"
+    ]
+  },
+  "severity_counts": {
+    "critical": 0,
+    "high": 1,
+    "medium": 0,
+    "low": 2,
+    "info": 1
+  },
+  "module_counts": [
+    {
+      "module": "dns",
+      "count": 1
+    },
+    {
+      "module": "headers",
+      "count": 1
+    },
+    {
+      "module": "news",
+      "count": 1
+    },
+    {
+      "module": "ssl",
+      "count": 1
+    }
+  ],
+  "timeline": [
+    {
+      "ts": 1709280000.0,
+      "kind": "news",
+      "label": "Story A"
+    },
+    {
+      "ts": 1709836800.0,
+      "kind": "scan",
+      "label": "scan started"
+    },
+    {
+      "ts": 1709836860.0,
+      "kind": "scan",
+      "label": "scan finished"
+    }
+  ],
+  "executive_summary": [
+    "HIGH overall risk (50/100) assessed for example.com across 4 finding(s).",
+    "HIGH — SSL: certificate expired in ssl.",
+    "LOW — DNS: no DMARC record in dns.",
+    "LOW — Headers: strict-transport-security missing in headers."
+  ],
+  "evidence_refs": [
+    {
+      "module": "ssl",
+      "title": "SSL: certificate expired",
+      "evidence": "notAfter < now"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: no DMARC record",
+      "evidence": "no v=DMARC1 TXT record"
+    },
+    {
+      "module": "headers",
+      "title": "Headers: strict-transport-security missing",
+      "evidence": "strict-transport-security header absent"
+    },
+    {
+      "module": "news",
+      "title": "News: timeline",
+      "evidence": "2 article(s)"
+    }
+  ],
+  "methodology": [
+    "Passive reconnaissance only: DNS, RDAP/WHOIS, certificate transparency, and HTTP fingerprints gathered from public sources.",
+    "Indicators originate from the configured module set and are de-duplicated by content hash before scoring.",
+    "Risk scores are deterministic weights over concrete findings; every contributing rule is listed in the risk overview."
+  ]
+}

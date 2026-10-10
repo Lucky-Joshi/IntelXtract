@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ brand.name }} — {{ model.target.value if model.target else 'report' }}</title>
+{% if print_mode %}
+<style>
+  body { font-family: Georgia, serif; color: #111; max-width: 820px; margin: 24px auto; line-height: 1.45; }
+  h1 { font-size: 22px; } h2 { font-size: 17px; margin-top: 22px; border-bottom: 1px solid #333; padding-bottom: 3px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  th, td { border: 1px solid #555; padding: 4px 6px; text-align: left; vertical-align: top; }
+  .chip, .score-bar, header.top, footer { display: none; }
+  ul { padding-left: 20px; }
+</style>
+{% else %}
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; background: {{ brand.page_background }}; color: {{ brand.text }};
+      font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.5; }
+  .page { max-width: 860px; margin: 0 auto; padding: 28px 22px 60px; }
+  header.top { background: {{ brand.accent }}; color: #fff; padding: 22px 22px 18px; }
+  header.top h1 { margin: 0 0 4px; font-size: 21px; }
+  header.top .tagline { opacity: .92; font-size: 13px; }
+  header.top .meta { margin-top: 10px; font-size: 12px; }
+  header.top .meta strong { opacity: .9; }
+  section.card { background: {{ brand.card_background }}; border: 1px solid {{ brand.border }};
+      border-radius: 10px; padding: 16px 18px; margin: 16px 0; }
+  h2 { font-size: 15px; margin: 0 0 10px; letter-spacing: .02em; text-transform: uppercase; color: {{ brand.text }}; }
+  ul { padding-left: 20px; margin: 6px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  th, td { border: 1px solid {{ brand.border }}; padding: 5px 7px; text-align: left; vertical-align: top; }
+  th { background: {{ brand.accent_soft }}; color: {{ brand.text }}; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  .chip { display: inline-block; border-radius: 12px; padding: 3px 11px; font-weight: 700; color: #fff; font-size: 13px; }
+  .chip.critical { background: #c62828; } .chip.high { background: #ef6c00; }
+  .chip.medium { background: #f9a825; } .chip.low { background: #42a5f5; color: #fff; }
+  .severity.critical { color: #c62828; } .severity.high { color: #ef6c00; }
+  .severity.medium { color: #f9a825; } .severity.low { color: #1e88e5; }
+  .score-bar { height: 10px; background: #e9ecef; border-radius: 6px; overflow: hidden; margin: 4px 0 12px; }
+  .score-bar span { display: block; height: 100%; background: {{ brand.accent }}; }
+  .score-row { display: flex; justify-content: space-between; font-size: 12px; }
+  footer { color: {{ brand.muted }}; font-size: 11px; margin-top: 26px; text-align: center; }
+  .timeline { list-style: none; padding-left: 4px; }
+  .timeline li::before { content: "◆ "; color: {{ brand.accent }}; }
+</style>
+{% endif %}
+</head>
+<body>
+<header class="top">
+  <h1>{{ brand.tagline }}</h1>
+  <div class="tagline">{{ brand.name }} v{{ model.app.version }}</div>
+  <div class="meta">
+    <strong>Target:</strong> {{ model.target.value if model.target else '—' }}
+    &nbsp;·&nbsp; <strong>Type:</strong> {{ model.target.type if model.target else '—' }}
+    &nbsp;·&nbsp; <strong>Mode:</strong> {{ model.scan.mode }}
+  </div>
+</header>
+
+<div class="page">
+  <section class="card">
+    <h2>Executive summary</h2>
+    <p>
+      {% set r = model.risk or {} %}
+      <span class="chip {{ r.get('rating', 'low') }}">{{ (r.get('rating') or 'low')|upper }} risk</span>
+    </p>
+    <ul>
+      {% for line in model.executive_summary %}<li>{{ line }}</li>{% endfor %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Risk overview</h2>
+    {% for name, meta in (model.risk.categories if model.risk else {}).items() %}
+      <div class="score-row"><span>{{ name }}</span><span>{{ "%.1f"|format(meta.score) }} — {{ meta.rules }} rule(s)</span></div>
+      <div class="score-bar"><span style="width: {{ (meta.get('score') or 0) * 2.5 }}%"></span></div>
+    {% else %}
+      <p>No risk categories were scored.</p>
+    {% endfor %}
+    {% if model.risk and model.risk.rules %}
+      <table>
+        <tr><th>rule</th><th>category</th><th>points</th></tr>
+        {% for rule in model.risk.rules[:12] %}
+          <tr><td>{{ rule.label }}</td><td>{{ rule.category }}</td><td>+{{ "%.0f"|format(rule.points) }}</td></tr>
+        {% endfor %}
+      </table>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Findings ({{ model.findings|length }})</h2>
+    <table>
+      <tr><th>severity</th><th>module</th><th>title</th><th>evidence</th></tr>
+      {% for severity in severity_order %}
+        {% for f in model.findings if f.severity == severity %}
+        <tr>
+          <td class="severity {{ severity }}">{{ severity }}</td>
+          <td>{{ f.module }}</td>
+          <td>{{ f.title or '—' }}</td>
+          <td>{{ f.evidence or '—' }}</td>
+        </tr>
+        {% endfor %}
+      {% endfor %}
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Modules</h2>
+    <table>
+      <tr><th>module</th><th>findings</th></tr>
+      {% for m in model.module_counts %}
+        <tr><td>{{ m.module }}</td><td>{{ m.count }}</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Timeline</h2>
+    {% if model.timeline %}
+      <ul class="timeline">
+        {% for event in model.timeline %}
+          <li><strong>{{ "%0.0f"|format(event.ts) }}</strong> — {{ event.label }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No dated events.</p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Methodology &amp; evidence</h2>
+    <ul>{% for point in model.methodology %}<li>{{ point }}</li>{% endfor %}</ul>
+    {% if model.evidence_refs %}
+      <table>
+        <tr><th>module</th><th>title</th><th>evidence</th></tr>
+        {% for ref in model.evidence_refs %}
+          <tr><td>{{ ref.module }}</td><td>{{ ref.title }}</td><td>{{ ref.evidence }}</td></tr>
+        {% endfor %}
+      </table>
+    {% endif %}
+  </section>
+
+  <footer>
+    Generated {{ model.generated_at }} · {{ brand.name }} v{{ model.app.version }}
+  </footer>
+</div>
+</body>
+</html>

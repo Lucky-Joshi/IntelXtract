@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 from pathlib import Path
 from typing import Any
 
@@ -57,6 +58,15 @@ def _write_plugin(root: Path, name: str, source: str) -> Path:
     directory.mkdir(parents=True)
     (directory / "plugin.py").write_text(source, encoding="utf-8")
     return directory
+
+
+def _report_count(cli_env: Path) -> int:
+    con = sqlite3.connect(cli_env / "app.db")
+    try:
+        row = con.execute("SELECT COUNT(*) FROM reports").fetchone()
+    finally:
+        con.close()
+    return int(row[0] or 0)
 
 
 # --- version / help ----------------------------------------------------------
@@ -148,17 +158,46 @@ def test_report_json_roundtrip(cli_env: Path) -> None:
     assert payload["scan"]["uuid"]
     assert payload["target"] == {"value": "example.com", "type": "domain"}
     assert payload["findings"] == []
-    assert "requested format: json" in result.stdout
+    assert "format: json" in result.stdout
 
 
-def test_report_html_is_stub(cli_env: Path, tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "format_, expected_ext, expected_marker",
+    [
+        ("html", "html", "<!doctype html>"),
+        ("csv", "csv", "severity,module,title,confidence,evidence"),
+        ("md", "md", "## Findings"),
+        ("json", "json", '"scan"'),
+    ],
+)
+def test_report_formats(
+    cli_env: Path,
+    tmp_path: Path,
+    format_: str,
+    expected_ext: str,
+    expected_marker: str,
+) -> None:
     assert runner.invoke(app, ["scan", "example.com"]).exit_code == 0
-    out = tmp_path / "custom.html"
-    result = runner.invoke(app, ["report", "1", "--format", "html", "--out", str(out)])
+    out = tmp_path / f"custom.{expected_ext}"
+    result = runner.invoke(app, ["report", "1", "--format", format_, "--out", str(out)])
     assert result.exit_code == 0
-    payload: dict[str, Any] = json.loads(out.read_text(encoding="utf-8"))
-    assert payload["stub"] is True
-    assert payload["requested_format"] == "html"
+    assert expected_marker in out.read_text(encoding="utf-8")
+    assert f"format: {format_}" in result.stdout
+    assert _report_count(cli_env) >= 1
+
+
+def test_report_pdf_falls_back_without_weasyprint(
+    cli_env: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("reports.exporter._load_weasyprint_html", lambda: None)
+    assert runner.invoke(app, ["scan", "example.com"]).exit_code == 0
+    result = runner.invoke(app, ["report", "1", "--format", "pdf"])
+    assert result.exit_code == 0
+    report_path = cli_env / "exports" / "report-1.html"
+    assert report_path.exists()
+    assert "<!doctype html>" in report_path.read_text(encoding="utf-8")
+    assert "WeasyPrint" in result.stderr
+    assert "output: html" in result.stdout
 
 
 def test_report_unknown_scan_fails(cli_env: Path) -> None:

@@ -67,7 +67,7 @@ sub-phases that are small enough to implement and verify independently.
 | 16    | Correlation Engine         | E         | L    | [x]    |
 | 17    | Risk Engine                | E         | M    | [x]    |
 | 18    | Visualization              | F         | L    | [ ]    |
-| 19    | Reporting                  | F         | L    | [ ]    |
+| 19    | Reporting                  | F         | L    | [x]    |
 | 20    | Plugin SDK                 | G         | M    | [ ]    |
 | 21    | Scheduler                  | G         | M    | [ ]    |
 | 22    | Case Management            | H         | M    | [ ]    |
@@ -550,16 +550,16 @@ PNG exports embeddable.
 
 **Objective:** Multi-format reports with shared content model.
 
-- [ ] S19.1 Report model — `reports/builder.py`: assemble executive summary,
+- [x] S19.1 Report model — `reports/builder.py`: assemble executive summary,
       findings, risk overview, timeline, evidence refs, methodology,
       timestamp from scan + correlation + risk data
-- [ ] S19.2 HTML — Jinja2 templates in `templates/` styled from BRAND.md
-- [ ] S19.3 JSON / CSV / Markdown exporters
-- [ ] S19.4 PDF — WeasyPrint rendering of the HTML template; if system
+- [x] S19.2 HTML — Jinja2 templates in `templates/` styled from BRAND.md
+- [x] S19.3 JSON / CSV / Markdown exporters
+- [x] S19.4 PDF — WeasyPrint rendering of the HTML template; if system
       libraries are missing, print-friendly HTML fallback + clear warning
-- [ ] S19.5 `history` integration — reports registered in `reports` table,
+- [x] S19.5 `history` integration — reports registered in `reports` table,
       discoverable via CLI/GUI
-- [ ] S19.6 Tests — golden HTML/JSON snapshots, CSV row counts, PDF fallback
+- [x] S19.6 Tests — golden HTML/JSON snapshots, CSV row counts, PDF fallback
 
 **Done criteria:** One command produces all five formats for a sample scan;
 files land in `exports/` and in the DB.
