@@ -97,6 +97,8 @@ def test_build_report_assembles_all_sections() -> None:
     payload = model.to_dict()
 
     assert payload["scan"]["uuid"] == "u7"
+    assert payload["scan"]["started_at"] == "2024-03-07T18:40:00"
+    assert payload["scan"]["finished_at"] == "2024-03-07T18:41:00"
     assert payload["target"] == {"value": "example.com", "type": "domain"}
     assert payload["app"]["name"] == "IntelXtract"
     assert len(payload["findings"]) == 4
