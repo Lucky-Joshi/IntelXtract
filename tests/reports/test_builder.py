@@ -148,6 +148,12 @@ def test_build_report_recomputes_correlation() -> None:
     assert "p.example" in values
 
 
+def test_build_report_scan_timestamps_are_utc_from_epoch() -> None:
+    scan = sample_model().to_dict()["scan"]
+    assert scan["started_at"] == "2024-03-07T18:40:00"
+    assert scan["finished_at"] == "2024-03-07T18:41:00"
+
+
 def test_build_report_without_findings() -> None:
     model = build_report(
         sample_scan(),
