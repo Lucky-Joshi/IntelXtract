@@ -10,10 +10,16 @@ callable ``(status, headers, body)`` stubs consumed by
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
+from datetime import UTC, datetime, timedelta
 from functools import cache
 from pathlib import Path
 from typing import Any, cast
+
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.x509.oid import NameOID
 
 FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
 
@@ -58,6 +64,56 @@ def sitemap_xml() -> str:
 def favicon_bytes() -> bytes:
     """Deterministic favicon payload for fingerprint tests."""
     return b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR" + b"idat-corpus-icon" * 8
+
+
+# --- captured certificate fixtures (Phase 13, no live TLS) -------------------
+
+_CT_POISON_OID = "1.3.6.1.4.1.11129.2.4.3"
+
+
+def make_cert_pem(
+    *,
+    subject_cn: str = "example.com",
+    not_before: datetime | None = None,
+    not_after: datetime | None = None,
+    sans: Sequence[str] = (),
+    is_ca: bool = False,
+    ct_poison: bool = False,
+    serial: int | None = None,
+) -> bytes:
+    """Build a deterministic self-signed certificate PEM (offline fixture).
+
+    Every Phase 13 certificate test parses these bytes instead of opening a
+    live TLS connection; validity windows are explicit so expired/expiring
+    states are reproducible.
+    """
+    now = datetime.now(UTC)
+    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, subject_cn)])
+    key = ec.generate_private_key(ec.SECP256R1())
+    builder = (
+        x509.CertificateBuilder()
+        .subject_name(name)
+        .issuer_name(name)
+        .public_key(key.public_key())
+        .serial_number(serial if serial is not None else x509.random_serial_number())
+        .not_valid_before(not_before or (now - timedelta(days=1)))
+        .not_valid_after(not_after or (now + timedelta(days=365)))
+        .add_extension(x509.BasicConstraints(ca=is_ca, path_length=None), critical=True)
+    )
+    if sans:
+        builder = builder.add_extension(
+            x509.SubjectAlternativeName([x509.DNSName(entry) for entry in sans]),
+            critical=False,
+        )
+    if ct_poison:
+        builder = builder.add_extension(
+            x509.UnrecognizedExtension(
+                x509.ObjectIdentifier(_CT_POISON_OID), b"\x05\x00"
+            ),
+            critical=False,
+        )
+    cert = builder.sign(key, hashes.SHA256())
+    return cert.public_bytes(serialization.Encoding.PEM)
 
 
 def doh_answer(data: str, *, rtype: int = 1, name: str = "") -> dict[str, Any]:

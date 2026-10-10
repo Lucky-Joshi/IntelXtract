@@ -92,6 +92,11 @@ DEFAULTS: dict[str, Any] = {
     "ssl": {
         "timeout": 10.0,
     },
+    "certificate": {
+        "endpoint": "https://crt.sh",
+        "timeout": 10.0,
+        "max_results": 100,
+    },
     "subdomain": {
         "endpoint": "https://crt.sh",
         "max_results": 500,

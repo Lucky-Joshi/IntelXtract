@@ -77,6 +77,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Tests cover registry validation, exists/missing/blocked/odd-status verdicts,
   marker precedence (Instagram-style 200 + missing-marker), enrichment
   failure modes, and mocked quick scans persisted to SQLite.
+- Phase 13 — certificate module: deep TLS/certificate intelligence in three
+  parts. `details.py` parses captured PEM/DER certificates (cryptography)
+  into subject/issuer DNs, SANs, signature algorithm, serial, validity,
+  key/extended-key usage, CA flag, CT poison mark and SCT list, with
+  pure-data risk classification (weak SHA-1/MD5 signatures, expired or
+  expiring-soon certs, self-signed, precertificates). `tls_probe.py`
+  handshakes TLS 1.0–1.3 per version and reports the negotiated cipher,
+  flagging deprecated protocols and RC4/3DES/CBC/NULL/EXPORT ciphers.
+  `transparency.py` aggregates crt.sh history — issuers, validity windows,
+  SAN sets, first/last seen, wildcard-normalized related names. The
+  registered `certificate` collector combines all three, degrading to
+  `partial`/`unknown` when the live handshake or crt.sh is unavailable.
+  Live hooks are module-level and monkeypatched in tests, so no unit test
+  opens a TLS connection; certificate fixtures are built offline.
 - Phase 0 — brand identity (`assets/logo.svg`, `assets/icon.svg`),
   `docs/brand/BRAND.md`, coding standards, git workflow, threat model, and
   privacy statement; folder architecture skeleton.

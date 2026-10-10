@@ -61,7 +61,7 @@ sub-phases that are small enough to implement and verify independently.
 | 10    | Website Module             | D         | M    | [x]    |
 | 11    | Email Module               | D         | M    | [x]    |
 | 12    | Username Module            | D         | M    | [x]    |
-| 13    | Certificate Module         | D         | M    | [ ]    |
+| 13    | Certificate Module         | D         | M    | [x]    |
 | 14    | Metadata Module            | D         | M    | [ ]    |
 | 15    | News Module                | D         | S    | [ ]    |
 | 16    | Correlation Engine         | E         | L    | [ ]    |
@@ -427,13 +427,13 @@ verdicts tested; blocked sites reported as `unknown`.
 
 **Objective:** Deep TLS/certificate intelligence (extends S8.3).
 
-- [ ] S13.1 Chain & details — full chain fetch, issuer/subject DNs, SAN
+- [x] S13.1 Chain & details — full chain fetch, issuer/subject DNs, SAN
       enumeration, signature algorithm, serial, CT poison/extension flags
-- [ ] S13.2 TLS probe — supported protocol versions (TLS 1.0–1.3),
+- [x] S13.2 TLS probe — supported protocol versions (TLS 1.0–1.3),
       negotiated cipher, weak-cipher/protocol findings
-- [ ] S13.3 Certificate transparency — historical certs for domain via crt.sh
+- [x] S13.3 Certificate transparency — historical certs for domain via crt.sh
       (issuers, validity windows, SAN sets, first/last seen)
-- [ ] S13.4 Tests — captured cert fixtures, no live TLS in unit tests
+- [x] S13.4 Tests — captured cert fixtures, no live TLS in unit tests
 
 **Done criteria:** Cert findings feed correlation (SANs → related domains)
 and risk (expiry, weak protocol); tests green.

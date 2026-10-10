@@ -124,6 +124,7 @@ def _engine_modules() -> list[Any]:
                 "modules.website",
                 "modules.email",
                 "modules.username",
+                "modules.certificate",
             )
         )
         return registry.instances()
