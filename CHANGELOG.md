@@ -15,6 +15,17 @@
 - `ScanResult.risk` — computed at scan end from flattened findings, included in `to_dict()`/exports, guarded so it never fails a scan.
 - 10 new tests: rating bands, golden scores, category ceilings, 100-cap saturation, cookie flag weights, weak SPF/DMARC predicates, input-order determinism, engine scan smoke + cross-scan stability.
 
+
+### Phase 18 — Visualization
+
+- `gui/viz/base.py` — `VizWidget` canvas: one `draw()` feeds the screen and in-memory PNG (`QImage`) / SVG (`QSvgGenerator`) exports; `export_png`/`export_svg` write report files (S18.5).
+- `gui/viz/graph_widget.py` — entity relationship graph built from the Phase 16 correlation payload; dependency-free deterministic Fruchterman-Reingold layout (no numpy needed), edges colored by type, target ring highlight (S18.1).
+- `gui/viz/timeline.py` — scan + news timeline on a shared time axis with `timeline_events()` normalizing payloads (S18.2).
+- `gui/viz/charts.py` — paint-based risk-category pie, module/severity bar charts, and scan trend line with `severity_bars`/`module_bars`/`trend_points` helpers (S18.3).
+- `gui/viz/world_map.py` — offline tile-less coarse world map (committed 135-country polygon set) dotting `Geo: IP location` findings by country or explicit lat/lon (S18.4).
+- `gui/pages/results.py` — new Visualization tab (Graph/Timeline/Charts/Map); `normalize_result` now passes `correlation`/`risk` through.
+- 8 new tests: offscreen widget PNG/SVG rendering, deterministic graph export, timeline sorting/dedup, bar helpers, map grouping, PNG file writes, results-page wiring.
+
 # Changelog
 
 All notable changes to IntelXtract are documented in this file.

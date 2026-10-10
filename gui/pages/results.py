@@ -7,13 +7,30 @@ from typing import Any
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QHBoxLayout,
     QLabel,
     QTableWidget,
     QTableWidgetItem,
     QTabWidget,
+    QVBoxLayout,
+    QWidget,
 )
 
+from gui.db_sync import recent_scans
 from gui.pages.base import Page
+from gui.viz import (
+    BarChartWidget,
+    RelationGraphWidget,
+    RiskPieWidget,
+    TimelineView,
+    TrendWidget,
+    WorldMapWidget,
+    map_markers_from_result,
+    module_bars,
+    severity_bars,
+    timeline_events,
+    trend_points,
+)
 
 
 def normalize_result(payload: dict[str, Any]) -> dict[str, Any]:
@@ -37,6 +54,8 @@ def normalize_result(payload: dict[str, Any]) -> dict[str, Any]:
             "type": payload.get("target_type"),
         },
         "findings": payload.get("findings", []),
+        "correlation": payload.get("correlation"),
+        "risk": payload.get("risk"),
     }
 
 
@@ -81,6 +100,7 @@ class ResultsPage(Page):
         self.tabs.addTab(self.runs_table, "Modules")
         self.tabs.addTab(self.findings_table, "Findings")
         self.tabs.addTab(self.correlation, "Correlation")
+        self.tabs.addTab(self._build_visualization_tab(), "Visualization")
         self.body.addWidget(self.tabs, stretch=1)
 
         self.ctx.bridge.scan_finished.connect(
@@ -89,6 +109,62 @@ class ResultsPage(Page):
 
     def refresh(self) -> None:
         return None
+
+    def _build_visualization_tab(self) -> QWidget:
+        """Phase 18: graph + timeline + charts + maps for the loaded result."""
+        self.graph_widget = RelationGraphWidget()
+        self.timeline_view = TimelineView()
+        self.risk_pie = RiskPieWidget()
+        self.severity_chart = BarChartWidget()
+        self.module_chart = BarChartWidget()
+        self.trend_chart = TrendWidget()
+        self.map_widget = WorldMapWidget()
+
+        viz_tabs = QTabWidget()
+        viz_tabs.addTab(self.graph_widget, "Graph")
+        viz_tabs.addTab(self.timeline_view, "Timeline")
+        viz_tabs.addTab(self._build_charts_tab(), "Charts")
+        viz_tabs.addTab(self.map_widget, "Map")
+        return viz_tabs
+
+    def _build_charts_tab(self) -> QWidget:
+        charts_host = QWidget()
+        charts_layout = QVBoxLayout(charts_host)
+        top_row = QHBoxLayout()
+        self.severity_chart.setMinimumWidth(220)
+        self.module_chart.setMinimumWidth(280)
+        self.risk_pie.setMinimumWidth(200)
+        top_row.addWidget(self.risk_pie, 2)
+        top_row.addWidget(self.severity_chart, 3)
+        top_row.addWidget(self.module_chart, 3)
+        charts_layout.addLayout(top_row, 3)
+        charts_layout.addWidget(self.trend_chart, 2)
+        return charts_host
+
+    def _render_visualizations(self) -> None:
+        payload = self._payload or {}
+        target = str((payload.get("target") or {}).get("value") or "")
+        self.graph_widget.set_correlation(payload.get("correlation"), target=target)
+        self.timeline_view.set_events(timeline_events(payload))
+        self.risk_pie.set_risk(payload.get("risk"))
+
+        findings = payload.get("findings") or []
+        self.severity_chart.set_bars("Findings by severity", severity_bars(findings))
+        self.module_chart.set_bars("Findings by module", module_bars(findings))
+
+        history: list[dict[str, Any]] = []
+        try:
+            history = recent_scans(self.ctx.db_path, limit=12)
+        except Exception:
+            history = []
+        scan = payload.get("scan") or {}
+        points = trend_points(scan)
+        for row in history:
+            row_points = trend_points(row) or []
+            if row_points:
+                points.append(row_points[0])
+        self.trend_chart.set_points("Scan trend (duration / risk)", points)
+        self.map_widget.set_markers(map_markers_from_result(payload))
 
     def show_result(self, payload: dict[str, Any]) -> None:
         """Render a scan result payload (engine or history shape)."""
@@ -144,4 +220,5 @@ class ResultsPage(Page):
                 item = QTableWidgetItem(value)
                 item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 self.findings_table.setItem(row_idx, col, item)
+        self._render_visualizations()
         self.set_status("result loaded")

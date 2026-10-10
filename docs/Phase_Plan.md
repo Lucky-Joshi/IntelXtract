@@ -529,15 +529,15 @@ rule traceable in output.
 
 **Objective:** Graphs, timelines, and charts in GUI and reports.
 
-- [ ] S18.1 Relationship graph widget — interactive node graph in GUI
+- [x] S18.1 Relationship graph widget — interactive node graph in GUI
       (QGraphicsScene-based or pyqtgraph; layout via NetworkX)
-- [ ] S18.2 Timeline view — scans + news + cert validity on a time axis
-- [ ] S18.3 Charts — risk distribution pie, module/severity bars, scan
+- [x] S18.2 Timeline view — scans + news + cert validity on a time axis
+- [x] S18.3 Charts — risk distribution pie, module/severity bars, scan
       statistics trend (pyqtgraph or exported Plotly images for reports)
-- [ ] S18.4 World map — coarse IP geolocation map (static image or simple
+- [x] S18.4 World map — coarse IP geolocation map (static image or simple
       tile-less plot; no external tile service required)
-- [ ] S18.5 Export helpers — render each viz to PNG/SVG for report embedding
-- [ ] S18.6 Smoke tests — widget construction offscreen, chart render to bytes
+- [x] S18.5 Export helpers — render each viz to PNG/SVG for report embedding
+- [x] S18.6 Smoke tests — widget construction offscreen, chart render to bytes
 
 **Done criteria:** GUI shows live graph/timeline/charts for a sample scan;
 PNG exports embeddable.
