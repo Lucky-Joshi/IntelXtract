@@ -68,7 +68,7 @@ sub-phases that are small enough to implement and verify independently.
 | 17    | Risk Engine                | E         | M    | [x]    |
 | 18    | Visualization              | F         | L    | [ ]    |
 | 19    | Reporting                  | F         | L    | [x]    |
-| 20    | Plugin SDK                 | G         | M    | [ ]    |
+| 20    | Plugin SDK                 | G         | M    | [x]    |
 | 21    | Scheduler                  | G         | M    | [ ]    |
 | 22    | Case Management            | H         | M    | [ ]    |
 | 23    | AI Assistant (optional)    | H         | S    | [ ]    |
@@ -572,16 +572,16 @@ files land in `exports/` and in the DB.
 
 **Objective:** Stable third-party extension API.
 
-- [ ] S20.1 Manifest schema — `manifest.json` (name, version, api_version,
+- [x] S20.1 Manifest schema — `manifest.json` (name, version, api_version,
       author, target types, required keys, entry point) + JSON-schema check
-- [ ] S20.2 Loader hardening — version compatibility gate, isolated import
+- [x] S20.2 Loader hardening — version compatibility gate, isolated import
       errors (one bad plugin never breaks the app), enable/disable persisted
       in DB
-- [ ] S20.3 Example plugins — `plugins/Wayback/` (CDX history) and
+- [x] S20.3 Example plugins — `plugins/Wayback/` (CDX history) and
       `plugins/VirusTotal/` (key-gated domain report) as living references
-- [ ] S20.4 SDK docs — `docs/plugin_sdk.md` + cookiecutter-style template
+- [x] S20.4 SDK docs — `docs/plugin_sdk.md` + cookiecutter-style template
       under `plugins/_template/`
-- [ ] S20.5 Tests — load/enable/disable/fail-soft paths, manifest validation
+- [x] S20.5 Tests — load/enable/disable/fail-soft paths, manifest validation
 
 **Done criteria:** Example plugins run through the same pipeline as core
 modules; broken plugin is reported, not fatal.

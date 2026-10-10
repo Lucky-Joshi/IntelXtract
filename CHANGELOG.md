@@ -1,4 +1,14 @@
 
+### Phase 20 — Plugin SDK
+
+- `core/plugin_loader.py` — `MANIFEST_SCHEMA` + `validate_manifest()` (typed schema check with fail-soft reporting); manifests are now overrides with type/format validation, unknown keys tolerated for forward compatibility.
+- Manifest-driven discovery: `entry_point` selects the module to import (default `plugin.py`, must stay inside the plugin dir); registry now keys plugins by resolved name; new `author` / `required_keys` metadata on `PluginInfo`; `required_keys` gate is honored by the engine planner.
+- `PluginModuleAdapter` + `PluginRegistry.engine_modules()` — plugins run through the same `ScanEngine` pipeline as core modules; adapter normalizes any plugin return value into a `ModuleResult` (mappings → `data`, title-shaped content → findings).
+- `PluginRegistry.apply_state()` hydrates persisted enable/disable flags; CLI `plugin list` applies DB state before rendering.
+- Example plugins: `plugins/Wayback/` (Web Archive CDX history, key-free) and `plugins/VirusTotal/` (key-gated `required_keys=["virustotal"]` reputation report) as living references.
+- `docs/plugin_sdk.md` + `plugins/_template/` (manifest, plugin, README) cookiecutter-style starter.
+- Tests: manifest validation (accept/type errors/fail-soft), `entry_point` resolution, name-keyed registry, `apply_state`, adapter normalization + context use, engine-pipeline run of the Wayback plugin with a fake HTTP client, VirusTotal key gating and detection grading, offline/failure handling (561 passed).
+
 ### Phase 19 — Reporting
 
 - `reports/brand.py` — brand tokens parsed from `BRAND.md` (accent, page/card background, text, muted, border) with defaults; `BRAND.md` added at repo root as the visual source of truth (S19.2).

@@ -1,0 +1,10 @@
+{
+  "name": "wayback",
+  "version": "1.0.0",
+  "api_version": 1,
+  "author": "IntelXtract",
+  "description": "Wayback Machine CDX archive history for a domain (no key required).",
+  "entry_point": "wayback.py",
+  "target_types": ["domain"],
+  "required_keys": []
+}

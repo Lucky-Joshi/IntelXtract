@@ -1,0 +1,10 @@
+{
+  "name": "virustotal",
+  "version": "1.0.0",
+  "api_version": 1,
+  "author": "IntelXtract",
+  "description": "VirusTotal domain reputation report (requires api key 'virustotal').",
+  "entry_point": "virustotal.py",
+  "target_types": ["domain"],
+  "required_keys": ["virustotal"]
+}

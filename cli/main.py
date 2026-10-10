@@ -620,6 +620,7 @@ async def _plugin_list(db_override: str | None) -> None:
         registry = _registry(cfg)
         infos = registry.discover()
         db_rows = {row.name: row for row in await repos.plugins.list()}
+        registry.apply_state({name: row.enabled for name, row in db_rows.items()})
         table = Table("name", "version", "api", "enabled", "error")
         for info in infos:
             row = db_rows.get(info.name)
@@ -664,12 +665,14 @@ async def _plugin_info(name: str, db_override: str | None) -> None:
         table.add_row("name", info.name)
         table.add_row("version", info.version)
         table.add_row("api_version", str(info.api_version))
+        table.add_row("author", info.author or "-")
         table.add_row("description", info.description or "-")
         table.add_row("source", str(info.source))
         table.add_row(
             "target_types",
             ", ".join(t.value for t in info.target_types) or "-",
         )
+        table.add_row("required_keys", ", ".join(info.requires_keys) or "-")
         table.add_row("enabled", "yes" if enabled else "no")
         table.add_row("error", error)
         console.print(table)
