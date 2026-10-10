@@ -65,7 +65,7 @@ sub-phases that are small enough to implement and verify independently.
 | 14    | Metadata Module            | D         | M    | [x]    |
 | 15    | News Module                | D         | S    | [x]    |
 | 16    | Correlation Engine         | E         | L    | [x]    |
-| 17    | Risk Engine                | E         | M    | [ ]    |
+| 17    | Risk Engine                | E         | M    | [x]    |
 | 18    | Visualization              | F         | L    | [ ]    |
 | 19    | Reporting                  | F         | L    | [ ]    |
 | 20    | Plugin SDK                 | G         | M    | [ ]    |
@@ -509,14 +509,14 @@ cert → IPs → emails; graph JSON stable and tested.
 
 **Objective:** Weighted, explainable risk scoring.
 
-- [ ] S17.1 Rule set — `core/risk_rules.py`: finding pattern → weight
+- [x] S17.1 Rule set — `core/risk_rules.py`: finding pattern → weight
       (expired SSL, missing HSTS/CSP, weak SPF, no DMARC, exposed emails,
       breach hits, open methods, insecure cookies, …)
-- [ ] S17.2 Scorer — 0–100 score → `low | medium | high | critical`, per-
+- [x] S17.2 Scorer — 0–100 score → `low | medium | high | critical`, per-
       category sub-scores (TLS, headers, DNS hygiene, exposure)
-- [ ] S17.3 Summary generator — top risks in plain language (feeds reports
+- [x] S17.3 Summary generator — top risks in plain language (feeds reports
       and AI assistant prompts)
-- [ ] S17.4 Tests — golden tests: fixture finding sets → expected scores
+- [x] S17.4 Tests — golden tests: fixture finding sets → expected scores
 
 **Done criteria:** Scores deterministic and documented; every contributing
 rule traceable in output.

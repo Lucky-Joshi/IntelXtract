@@ -7,6 +7,14 @@
 - `requirements.txt`: pin `networkx==3.7`.
 - 9 new tests (entity normalization/ids, extractor aggregation, expected edge set, connected components, cross-scan determinism, empty-findings).
 
+
+### Phase 17 — Risk Engine
+
+- `core/risk_rules.py` — documented rule table (module + title pattern → category + weight): expired/self-signed TLS, no HTTPS, TRACE, missing HSTS/CSP/XFO/XCTO/Referrer/Permissions, server disclosure, insecure cookies, missing/weak SPF + DMARC + MX, absent DNSSEC, breach exposure, GPS metadata, disposable email.
+- `core/risk.py` — pure `assess_risk()` scoring: category sub-scores (TLS/HEADERS/DNS/EXPOSURE) with documented ceilings, 0-100 score → `low|medium|high|critical`, deterministic de-duped/ordered rule trace, plain-language top-risk summary.
+- `ScanResult.risk` — computed at scan end from flattened findings, included in `to_dict()`/exports, guarded so it never fails a scan.
+- 10 new tests: rating bands, golden scores, category ceilings, 100-cap saturation, cookie flag weights, weak SPF/DMARC predicates, input-order determinism, engine scan smoke + cross-scan stability.
+
 # Changelog
 
 All notable changes to IntelXtract are documented in this file.

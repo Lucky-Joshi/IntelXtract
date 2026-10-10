@@ -22,6 +22,7 @@ from core.http_client import HttpClient
 from core.input_engine import classify, select_modules
 from core.logger import get_logger, scan_context
 from core.models import ModuleResult
+from core.risk import assess_risk
 from core.scheduler import Task, TaskScheduler
 from core.worker_pool import WorkerPool
 
@@ -132,6 +133,7 @@ class ScanResult:
     runs: list[ModuleRun] = field(default_factory=list)
     findings: list[dict[str, Any]] = field(default_factory=list)
     correlation: dict[str, Any] | None = None
+    risk: dict[str, Any] | None = None
     error: str | None = None
 
     @property
@@ -163,6 +165,7 @@ class ScanResult:
             "runs": [run.to_dict() for run in self.runs],
             "findings": self.findings,
             "correlation": self.correlation,
+            "risk": self.risk,
         }
 
 
@@ -316,6 +319,11 @@ class ScanEngine:
             except Exception as exc:  # correlation must never fail a scan
                 _log.warning("correlation for scan %s failed: %s", scan_id, exc)
                 result.correlation = None
+            try:
+                result.risk = assess_risk(result.findings, target=cleaned).to_dict()
+            except Exception as exc:  # risk assessment must never fail a scan
+                _log.warning("risk for scan %s failed: %s", scan_id, exc)
+                result.risk = None
             _log.info(
                 "scan %s finished: %s (%.2fs, %d module(s))",
                 scan_id,
