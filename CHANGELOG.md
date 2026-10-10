@@ -1,3 +1,12 @@
+
+### Phase 16 — Correlation Engine
+
+- `core/entities.py` — stable entity model (10 kinds, normalized value hash IDs) + per-module extractors over `Finding.data`.
+- `core/correlation.py` — NetworkX MultiDiGraph linker: `resolves_to`, `registered_by`, `issued_to`, `same_email`, `part_of`, `mentions`, `profile`, `uses` edges with confidence.
+- `ScanResult.correlation` — deterministic graph JSON (entities/edges/stats) computed at scan end; included in `to_dict`/exports, never fails a scan.
+- `requirements.txt`: pin `networkx==3.7`.
+- 9 new tests (entity normalization/ids, extractor aggregation, expected edge set, connected components, cross-scan determinism, empty-findings).
+
 # Changelog
 
 All notable changes to IntelXtract are documented in this file.

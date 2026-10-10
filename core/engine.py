@@ -16,6 +16,7 @@ from typing import Any, Protocol, runtime_checkable
 from core.cache import AsyncTTLCache
 from core.config import Config
 from core.constants import ModuleStatus, ScanMode, ScanStatus, TargetType, TaskState
+from core.correlation import build_graph
 from core.exceptions import ScanError, TaskTimeoutError, ValidationError
 from core.http_client import HttpClient
 from core.input_engine import classify, select_modules
@@ -130,6 +131,7 @@ class ScanResult:
     finished_at: float
     runs: list[ModuleRun] = field(default_factory=list)
     findings: list[dict[str, Any]] = field(default_factory=list)
+    correlation: dict[str, Any] | None = None
     error: str | None = None
 
     @property
@@ -160,6 +162,7 @@ class ScanResult:
             "error": self.error,
             "runs": [run.to_dict() for run in self.runs],
             "findings": self.findings,
+            "correlation": self.correlation,
         }
 
 
@@ -305,6 +308,14 @@ class ScanEngine:
                 skipped,
                 scheduler,
             )
+            try:
+                graph = build_graph(
+                    result.findings, target=cleaned, target_type=target_type
+                )
+                result.correlation = graph.to_dict() if graph is not None else None
+            except Exception as exc:  # correlation must never fail a scan
+                _log.warning("correlation for scan %s failed: %s", scan_id, exc)
+                result.correlation = None
             _log.info(
                 "scan %s finished: %s (%.2fs, %d module(s))",
                 scan_id,

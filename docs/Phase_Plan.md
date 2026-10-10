@@ -64,7 +64,7 @@ sub-phases that are small enough to implement and verify independently.
 | 13    | Certificate Module         | D         | M    | [x]    |
 | 14    | Metadata Module            | D         | M    | [x]    |
 | 15    | News Module                | D         | S    | [x]    |
-| 16    | Correlation Engine         | E         | L    | [ ]    |
+| 16    | Correlation Engine         | E         | L    | [x]    |
 | 17    | Risk Engine                | E         | M    | [ ]    |
 | 18    | Visualization              | F         | L    | [ ]    |
 | 19    | Reporting                  | F         | L    | [ ]    |
@@ -486,16 +486,16 @@ fetches degrade gracefully.
 **Objective:** Link findings into entities and relationships — the platform's
 core differentiator.
 
-- [ ] S16.1 Entity model — `core/entities.py`: domain, subdomain, email,
+- [x] S16.1 Entity model — `core/entities.py`: domain, subdomain, email,
       username, IP, organization, certificate, phone, document, social
       profile, technology; stable entity IDs (type + normalized value hash)
-- [ ] S16.2 Extractors — per-module entity extraction from `Finding.data`
+- [x] S16.2 Extractors — per-module entity extraction from `Finding.data`
       (registry pattern so modules declare their entities)
-- [ ] S16.3 Linker — relationship edges with type + confidence
+- [x] S16.3 Linker — relationship edges with type + confidence
       (`resolves_to`, `registered_by`, `issued_to`, `same_email`, `mentions`…)
-- [ ] S16.4 Graph output — NetworkX graph → JSON (nodes/edges) for viz +
+- [x] S16.4 Graph output — NetworkX graph → JSON (nodes/edges) for viz +
       persistence in `findings`/`history`
-- [ ] S16.5 Tests — fixture scan → expected entity set + edge set;
+- [x] S16.5 Tests — fixture scan → expected entity set + edge set;
       determinism check (same input → same graph)
 
 **Done criteria:** A domain scan produces a connected graph linking domain →
