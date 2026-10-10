@@ -130,6 +130,12 @@ DEFAULTS: dict[str, Any] = {
         "sites_extra": [],
         "enrich_github": True,
     },
+    "news": {
+        "max_items": 12,
+        "feeds": [],
+        "feeds_by_domain": {},
+        "feeds_extra": [],
+    },
     "api_keys": {},
 }
 

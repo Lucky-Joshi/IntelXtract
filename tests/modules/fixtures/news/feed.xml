@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>SecurityWire</title>
+    <description>Community feed used by the Phase 15 news fixtures.</description>
+    <item>
+      <title>Breach at example.com</title>
+      <link>https://security.example/breach.html</link>
+      <guid>sec-1</guid>
+      <pubDate>Mon, 05 Feb 2024 09:00:00 GMT</pubDate>
+      <source>SecurityWire</source>
+    </item>
+    <item>
+      <title>example.com patched</title>
+      <link>https://security.example/patched.html</link>
+      <guid>sec-1</guid>
+      <pubDate>Mon, 05 Feb 2024 10:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Duplicate link article</title>
+      <link>https://security.example/breach.html</link>
+      <guid>sec-2</guid>
+      <pubDate>Mon, 05 Feb 2024 11:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Undated notice</title>
+      <link>https://security.example/notice.html</link>
+      <guid>sec-3</guid>
+    </item>
+  </channel>
+</rss>

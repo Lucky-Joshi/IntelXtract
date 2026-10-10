@@ -5,6 +5,15 @@ All notable changes to IntelXtract are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+### Phase 15 — News Module
+
+- `modules/news/` — Google News RSS + configured RSS/Atom feeds (`rss.py`, `feeds.py`, `timeline.py`, `collector.py`).
+- Deterministic timeline builder: dedupe by URL/guid, newest-first, undated last, capped by `news.max_items`.
+- Config: `news.{google,max_items,feeds,feeds_by_domain,feeds_extra}`; registered `modules.news` on DOMAIN deep scans.
+- Offline-safe: every feed failure degrades to an `unavailable` LOW finding rather than crashing.
+- 21 new tests (feed fixtures, date parsing, dedupe, feeds config, engine + persistence).
+
 ## [Unreleased]
 
 ### Added

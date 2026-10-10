@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Example Monitor</title>
+  <id> urn:uuid:monitor-42</id>
+  <updated>2024-06-02T09:00:00Z</updated>
+  <entry>
+    <title>Example outage reported</title>
+    <link rel="alternate" href="https://monitor.example/outage"/>
+    <id>atom-1</id>
+    <published>2024-06-01T08:00:00Z</published>
+  </entry>
+  <entry>
+    <title>Example upgrade underway</title>
+    <link href="https://monitor.example/upgrade"/>
+    <id>atom-2</id>
+    <updated>2024-06-02T08:00:00+00:00</updated>
+  </entry>
+</feed>

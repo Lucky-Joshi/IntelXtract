@@ -63,7 +63,7 @@ sub-phases that are small enough to implement and verify independently.
 | 12    | Username Module            | D         | M    | [x]    |
 | 13    | Certificate Module         | D         | M    | [x]    |
 | 14    | Metadata Module            | D         | M    | [x]    |
-| 15    | News Module                | D         | S    | [ ]    |
+| 15    | News Module                | D         | S    | [x]    |
 | 16    | Correlation Engine         | E         | L    | [ ]    |
 | 17    | Risk Engine                | E         | M    | [ ]    |
 | 18    | Visualization              | F         | L    | [ ]    |
@@ -466,13 +466,13 @@ malformed files fail gracefully.
 
 **Objective:** Recent news and press mentions for entity targets.
 
-- [ ] S15.1 `modules/news/rss.py` — Google News RSS / public RSS search by
+- [x] S15.1 `modules/news/rss.py` — Google News RSS / public RSS search by
       domain-or-organization keyword (no key required)
-- [ ] S15.2 `modules/news/feeds.py` — configurable RSS/Atom feed list per
+- [x] S15.2 `modules/news/feeds.py` — configurable RSS/Atom feed list per
       case/domain, dedupe by URL/guid
-- [ ] S15.3 Timeline builder — normalized article records (title, source,
+- [x] S15.3 Timeline builder — normalized article records (title, source,
       date, url) ordered newest-first for report timeline
-- [ ] S15.4 Tests — feed fixtures, date parsing, dedupe logic
+- [x] S15.4 Tests — feed fixtures, date parsing, dedupe logic
 
 **Done criteria:** A domain scan yields a news timeline; offline/failed feed
 fetches degrade gracefully.
