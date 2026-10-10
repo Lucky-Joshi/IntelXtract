@@ -62,7 +62,7 @@ sub-phases that are small enough to implement and verify independently.
 | 11    | Email Module               | D         | M    | [x]    |
 | 12    | Username Module            | D         | M    | [x]    |
 | 13    | Certificate Module         | D         | M    | [x]    |
-| 14    | Metadata Module            | D         | M    | [ ]    |
+| 14    | Metadata Module            | D         | M    | [x]    |
 | 15    | News Module                | D         | S    | [ ]    |
 | 16    | Correlation Engine         | E         | L    | [ ]    |
 | 17    | Risk Engine                | E         | M    | [ ]    |
@@ -446,14 +446,14 @@ and risk (expiry, weak protocol); tests green.
 
 **Objective:** Document/file metadata extraction (user-provided files).
 
-- [ ] S14.1 `modules/metadata/pdf.py` — title, author, producer, creation/
+- [x] S14.1 `modules/metadata/pdf.py` — title, author, producer, creation/
       modification dates, PDF version (`pypdf`)
-- [ ] S14.2 `modules/metadata/image.py` — EXIF: camera, software, timestamps,
+- [x] S14.2 `modules/metadata/image.py` — EXIF: camera, software, timestamps,
       GPS if present (`Pillow`); safe parsing of untrusted files
-- [ ] S14.3 `modules/metadata/office.py` — OOXML core/app properties
+- [x] S14.3 `modules/metadata/office.py` — OOXML core/app properties
       (author, company, dates) via zip/XML parse; legacy `.doc` note as
       out-of-scope for v1
-- [ ] S14.4 Tests — small fixture files under `tests/fixtures/`
+- [x] S14.4 Tests — small fixture files under `tests/fixtures/`
 
 **Done criteria:** All three parsers extract expected fields from fixtures;
 malformed files fail gracefully.

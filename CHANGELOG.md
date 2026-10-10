@@ -91,6 +91,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `partial`/`unknown` when the live handshake or crt.sh is unavailable.
   Live hooks are module-level and monkeypatched in tests, so no unit test
   opens a TLS connection; certificate fixtures are built offline.
+- Phase 14 — metadata module: document/file property extraction for
+  user-provided files. `pdf.py` reads PDF document dictionaries via pypdf
+  (title, author, producer, creator, page count, PDF version, creation/mod
+  timestamps normalized to ISO-8601). `image.py` reads only EXIF header
+  blocks with Pillow — make/model, software, timestamps, artist, lens — and
+  converts GPS DMS rationals to signed decimal degrees, guarded by a
+  decompression-bomb pixel cap and never decoding pixel payloads. `office.py`
+  parses OOXML ``.docx``/``.xlsx``/``.pptx`` core/app property parts
+  directly from the zip container (creator, lastModifiedBy, company, dates,
+  application), with legacy binary ``.doc`` explicitly out of scope. The
+  registered `metadata` collector dispatches on extension and collapses
+  malformed or unsupported files to informational findings instead of
+  failing the scan. Fixture files (sample PDF/JPEG/docx + malformed
+  variants) are committed under `tests/modules/fixtures/metadata/`.
 - Phase 0 — brand identity (`assets/logo.svg`, `assets/icon.svg`),
   `docs/brand/BRAND.md`, coding standards, git workflow, threat model, and
   privacy statement; folder architecture skeleton.
