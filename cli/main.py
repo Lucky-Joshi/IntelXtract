@@ -40,6 +40,7 @@ from core.exceptions import (
     PluginLoadError,
     ScanError,
     ValidationError,
+    VaultError,
 )
 from core.logger import setup_logging
 from core.plugin_loader import PluginRegistry
@@ -49,6 +50,18 @@ from core.scheduling import (
     compute_next_run,
     to_iso,
     validate_cadence,
+)
+from core.vault import (
+    delete_key,
+    get_key,
+    hydrate_api_keys,
+)
+from core.vault import list_stored as list_stored_keys
+from core.vault import (
+    mask as vault_mask,
+)
+from core.vault import (
+    store_key as vault_store_key,
 )
 from database.connection import Database, open_database
 from database.migrations import migrate
@@ -75,11 +88,13 @@ config_app = typer.Typer(help="Get/set configuration values.", no_args_is_help=T
 plugin_app = typer.Typer(help="Manage plugins.", no_args_is_help=True)
 schedule_app = typer.Typer(help="Manage recurring scans.", no_args_is_help=True)
 case_app = typer.Typer(help="Group scans into investigations.", no_args_is_help=True)
+key_app = typer.Typer(help="Manage encrypted API keys.", no_args_is_help=True)
 app.add_typer(history_app, name="history")
 app.add_typer(config_app, name="config")
 app.add_typer(plugin_app, name="plugin")
 app.add_typer(schedule_app, name="schedule")
 app.add_typer(case_app, name="case")
+app.add_typer(key_app, name="key")
 
 StatusColor = {"ok": "green", "warn": "yellow", "fail": "red"}
 ScanStatusColor = {
@@ -162,6 +177,10 @@ def _load_config(db_override: str | None = None) -> Config:
         _fail(str(exc))
     if db_override is not None:
         cfg.set("paths.db_path", db_override)
+    try:
+        hydrate_api_keys(cfg)
+    except VaultError:
+        pass
     return cfg
 
 
@@ -688,6 +707,8 @@ def config_set(
     value: str = typer.Argument(..., help="New value (JSON-parsed when possible)."),
 ) -> None:
     """Set a configuration value and persist it."""
+    if key.startswith("api_keys."):
+        _fail("API keys are stored in the encrypted vault; use 'key set' instead")
     cfg = _load_config()
     cfg.set(key, _parse_value(value))
     cfg.save()
@@ -702,10 +723,13 @@ def config_list() -> None:
     table = Table("key", "value")
     for key in sorted(rows):
         value = rows[key]
-        table.add_row(
-            key,
-            value if isinstance(value, str) else json.dumps(value, default=str),
-        )
+        if key.startswith("api_keys.") and isinstance(value, str):
+            display = vault_mask(value)
+        elif isinstance(value, str):
+            display = value
+        else:
+            display = json.dumps(value, default=str)
+        table.add_row(key, display)
     console.print(table)
     console.print(f"config file: {cfg.path}")
 
@@ -714,6 +738,85 @@ def config_list() -> None:
 def config_path() -> None:
     """Print the path of the configuration file."""
     console.print(str(_load_config().path))
+
+
+# ---------------------------------------------------------------------------
+# key (encrypted API-key vault)
+# ---------------------------------------------------------------------------
+
+
+@key_app.command("list")
+def key_list() -> None:
+    """List providers with keys stored in the encrypted vault."""
+    cfg = _load_config()
+    try:
+        stored = list_stored_keys(cfg)
+    except VaultError as exc:
+        _fail(str(exc))
+    if not stored:
+        console.print("[dim]no API keys stored in the vault[/dim]")
+        return
+    table = Table("provider", "hint", "updated")
+    for row in stored:
+        table.add_row(row["provider"], row["hint"], row["updated_at"])
+    console.print(table)
+
+
+@key_app.command("set")
+def key_set(
+    provider: str = typer.Argument(..., help="Provider name, e.g. shodan."),
+    value: str | None = typer.Option(
+        None, "--value", help="Key value (prompted securely when omitted)."
+    ),
+) -> None:
+    """Encrypt and store an API key."""
+    cfg = _load_config()
+    secret = (
+        value
+        if value is not None
+        else typer.prompt(f"API key for {provider}", hide_input=True)
+    )
+    try:
+        hint = vault_store_key(cfg, provider, secret)
+    except VaultError as exc:
+        _fail(str(exc))
+    console.print(f"{provider} stored ({hint})")
+
+
+@key_app.command("get")
+def key_get(
+    provider: str = typer.Argument(..., help="Provider name."),
+    reveal: bool = typer.Option(
+        False, "--reveal", help="Print the decrypted key (default: masked)."
+    ),
+) -> None:
+    """Show a stored key (masked unless ``--reveal``)."""
+    cfg = _load_config()
+    try:
+        secret = get_key(cfg, provider)
+    except VaultError as exc:
+        _fail(str(exc))
+    if secret is None:
+        _fail(f"no key stored for provider: {provider}")
+    console.print(secret if reveal else vault_mask(secret))
+
+
+@key_app.command("delete")
+def key_delete(
+    provider: str = typer.Argument(..., help="Provider name."),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation."),
+) -> None:
+    """Delete a stored API key."""
+    cfg = _load_config()
+    if not yes:
+        typer.confirm(f"Delete stored key for {provider}?", abort=True)
+    try:
+        existed = delete_key(cfg, provider)
+    except VaultError as exc:
+        _fail(str(exc))
+    if not existed:
+        _fail(f"no key stored for provider: {provider}")
+    console.print(f"{provider} deleted")
 
 
 # ---------------------------------------------------------------------------

@@ -69,3 +69,7 @@ class ScanCancelledError(ScanError):
 
 class AssistantError(IntelXtractError):
     """The optional AI assistant is disabled or a provider call failed."""
+
+
+class VaultError(IntelXtractError):
+    """API-key vault key material is missing, unreadable, or malformed."""

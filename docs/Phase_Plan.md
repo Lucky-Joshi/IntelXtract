@@ -72,7 +72,7 @@ sub-phases that are small enough to implement and verify independently.
 | 21    | Scheduler                  | G         | M    | [ ]    |
 | 22    | Case Management            | H         | M    | [x]    |
 | 23    | AI Assistant (optional)    | H         | S    | [x]    |
-| 24    | Settings                   | I         | M    | [ ]    |
+| 24    | Settings                   | I         | M    | [x]    |
 | 25    | Performance                | I         | M    | [ ]    |
 | 26    | Testing                    | I         | L    | [ ]    |
 | 27    | Documentation              | I         | M    | [ ]    |
@@ -653,16 +653,16 @@ mocked tests green.
 
 **Objective:** Centralized settings and secure key storage.
 
-- [ ] S24.1 API key vault — encrypted at rest (Fernet key derived/stored with
+- [x] S24.1 API key vault — encrypted at rest (Fernet key derived/stored with
       `keyring` when available, file-based fallback with strict 0600 perms),
       CLI/GUI set/get/delete; DB `api_keys` table stores ciphertext only
-- [ ] S24.2 Network settings — proxy, rate limits, timeouts, retries
+- [x] S24.2 Network settings — proxy, rate limits, timeouts, retries
       (consumed by `core/context` HTTP layer)
-- [ ] S24.3 App settings — theme, language, cache TTL/size, DB path,
+- [x] S24.3 App settings — theme, language, cache TTL/size, DB path,
       log level/rotation, telemetry = always off
-- [ ] S24.4 GUI wiring — Settings page + API Manager write through the vault
+- [x] S24.4 GUI wiring — Settings page + API Manager write through the vault
       (replaces S5.9 interim storage)
-- [ ] S24.5 Tests — vault round-trip, file perms, config precedence order
+- [x] S24.5 Tests — vault round-trip, file perms, config precedence order
 
 **Done criteria:** Keys never stored plaintext; all modules read keys via the
 vault accessor; precedence documented and tested.

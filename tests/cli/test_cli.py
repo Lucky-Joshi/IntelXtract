@@ -51,6 +51,7 @@ def cli_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("INTELXTRACT_PATHS__PLUGINS_DIR", str(tmp_path / "plugins"))
     monkeypatch.setenv("INTELXTRACT_LOGGING__FILE", str(tmp_path / "logs" / "app.log"))
     monkeypatch.setenv("INTELXTRACT_LOGGING__CONSOLE", "false")
+    monkeypatch.setenv("INTELXTRACT_VAULT__KEY_PATH", str(tmp_path / "vault.key"))
     (tmp_path / "plugins").mkdir()
     return tmp_path
 
@@ -101,6 +102,7 @@ def test_help_lists_commands(cli_env: Path) -> None:
         "plugin",
         "schedule",
         "case",
+        "key",
         "explain",
         "doctor",
         "update",
@@ -275,6 +277,50 @@ def test_config_get_missing_key_fails(cli_env: Path) -> None:
     result = runner.invoke(app, ["config", "get", "nope.nope"])
     assert result.exit_code == 1
     assert "not set" in result.stderr
+
+
+# --- key (encrypted vault) ---------------------------------------------------
+
+
+def test_key_set_get_list_delete(cli_env: Path) -> None:
+    set_result = runner.invoke(
+        app, ["key", "set", "shodan", "--value", "supersecretvalue"]
+    )
+    assert set_result.exit_code == 0
+    assert "su••••ue" in set_result.stdout
+
+    listed = runner.invoke(app, ["key", "list"])
+    assert listed.exit_code == 0
+    assert "shodan" in listed.stdout
+    assert "supersecretvalue" not in listed.stdout
+
+    masked = runner.invoke(app, ["key", "get", "shodan"])
+    assert masked.exit_code == 0
+    assert masked.stdout.strip() == "su••••ue"
+
+    revealed = runner.invoke(app, ["key", "get", "shodan", "--reveal"])
+    assert revealed.stdout.strip() == "supersecretvalue"
+
+    deleted = runner.invoke(app, ["key", "delete", "shodan", "--yes"])
+    assert deleted.exit_code == 0
+
+    missing = runner.invoke(app, ["key", "get", "shodan"])
+    assert missing.exit_code == 1
+    assert "no key stored" in missing.stderr
+
+
+def test_key_value_never_written_to_config(cli_env: Path) -> None:
+    runner.invoke(app, ["key", "set", "shodan", "--value", "supersecretvalue"])
+    runner.invoke(app, ["config", "set", "scan.max_workers", "4"])
+    settings = cli_env / "settings.json"
+    assert settings.exists()
+    assert "supersecretvalue" not in settings.read_text()
+
+
+def test_key_list_empty_message(cli_env: Path) -> None:
+    result = runner.invoke(app, ["key", "list"])
+    assert result.exit_code == 0
+    assert "no API keys stored" in result.stdout
 
 
 # --- plugin ------------------------------------------------------------------

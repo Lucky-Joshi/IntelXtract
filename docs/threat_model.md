@@ -14,7 +14,7 @@ network traffic it generates while performing OSINT collection.
 
 | Asset | Sensitivity | Location |
 |-------|-------------|----------|
-| API keys for third-party services | Critical | Key vault (encrypted at rest, Phase 24) |
+| API keys for third-party services | Critical | Key vault (Fernet-encrypted at rest in the `api_keys` table) |
 | Scan history & findings | High | Local SQLite DB (`~/.local/share/intelxtract` or configured path) |
 | Reports (may contain personal data) | High | `exports/` |
 | Configuration (paths, limits, proxy) | Medium | `config/settings.json` |

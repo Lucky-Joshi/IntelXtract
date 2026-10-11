@@ -1,4 +1,4 @@
-"""API Manager page: provider keys stored in config (vault lands Phase 24)."""
+"""API Manager page: provider keys stored in the encrypted vault (S24.4)."""
 
 from __future__ import annotations
 
@@ -14,6 +14,8 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
 )
 
+from core.exceptions import VaultError
+from core.vault import delete_key, list_stored, mask, store_key
 from gui.pages.base import Page
 
 PROVIDERS: tuple[str, ...] = (
@@ -30,15 +32,11 @@ PROVIDERS: tuple[str, ...] = (
 
 def mask_key(value: str) -> str:
     """Render a stored key without revealing it."""
-    if not value:
-        return ""
-    if len(value) <= 4:
-        return "••••"
-    return f"{value[:2]}••••{value[-2:]}"
+    return mask(value)
 
 
 class ApiManagerPage(Page):
-    """Interim config-backed API key storage with a vault warning banner."""
+    """Encrypted (Fernet) API-key storage backed by the SQLite vault."""
 
     page_id = "api_manager"
     title = "API Manager"
@@ -47,8 +45,9 @@ class ApiManagerPage(Page):
         super().__init__(ctx, parent)
 
         banner = QLabel(
-            "Interim storage: keys are written to config/settings.json in plain "
-            "text. Encrypted vault storage arrives in Phase 24."
+            "Keys are encrypted with Fernet and stored in the vault (ciphertext "
+            "only). The vault key resolves from INTELXTRACT_VAULT_KEY, the OS "
+            "keyring, or a 0600 key file."
         )
         banner.setObjectName("banner")
         banner.setWordWrap(True)
@@ -83,26 +82,34 @@ class ApiManagerPage(Page):
         form.addWidget(clear_btn)
         self.body.addLayout(form)
 
+    def _stored_hints(self) -> dict[str, str]:
+        try:
+            return {
+                row["provider"]: row["hint"] for row in list_stored(self.ctx.config)
+            }
+        except VaultError:
+            return {}
+
     def refresh(self) -> None:
         section = self.ctx.config.section("api_keys")
+        hints = self._stored_hints()
         providers = list(PROVIDERS)
-        for name in section:
+        for name in {*section, *hints}:
             if name not in providers:
                 providers.append(name)
         self.table.setRowCount(len(providers))
+        configured = 0
         for row_idx, provider in enumerate(providers):
-            value = str(section.get(provider, "") or "")
-            values = (
-                provider,
-                "yes" if value else "no",
-                mask_key(value),
-            )
+            hint = hints.get(provider) or mask(str(section.get(provider, "") or ""))
+            is_set = bool(section.get(provider) or hint)
+            configured += 1 if is_set else 0
+            values = (provider, "yes" if is_set else "no", hint)
             for col, text in enumerate(values):
                 item = QTableWidgetItem(text)
                 item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 item.setData(Qt.ItemDataRole.UserRole, provider)
                 self.table.setItem(row_idx, col, item)
-        self.set_status(f"{sum(1 for p in providers if section.get(p))} key(s) stored")
+        self.set_status(f"{configured} key(s) stored in the vault")
 
     def _on_select(self) -> None:
         items = self.table.selectedItems()
@@ -118,26 +125,23 @@ class ApiManagerPage(Page):
         if not provider or not value:
             self.set_status("provider and key are both required")
             return
-        self.ctx.config.set(f"api_keys.{provider}", value)
         try:
-            self.ctx.config.save()
-        except Exception as exc:
-            self.set_status(f"could not save config: {exc}")
+            hint = store_key(self.ctx.config, provider, value)
+        except VaultError as exc:
+            self.set_status(f"could not store key: {exc}")
             return
         self.key_input.clear()
         self.refresh()
-        self.set_status(f"key for {provider} stored in config")
+        self.set_status(f"key for {provider} encrypted and stored ({hint})")
 
     def _clear(self) -> None:
         provider = self.provider_input.text().strip().lower()
         if not provider:
             self.set_status("enter the provider to clear")
             return
-        key = f"api_keys.{provider}"
         try:
-            self.ctx.config.unset(key)
-            self.ctx.config.save()
-        except Exception as exc:
+            delete_key(self.ctx.config, provider)
+        except VaultError as exc:
             self.set_status(f"clear skipped: {exc}")
             return
         self.refresh()

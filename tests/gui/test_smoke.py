@@ -231,6 +231,7 @@ def test_plugins_page_discovers_manifest(
 
 def test_api_manager_save_masks_key(make_window: Any, gui_env: Any) -> None:
     from core.config import load_config
+    from core.vault import get_key
 
     window = make_window()
     window.switch_page("api_manager")
@@ -241,7 +242,11 @@ def test_api_manager_save_masks_key(make_window: Any, gui_env: Any) -> None:
 
     assert "supersecretvalue" not in page.table.item(0, 2).text()
     reloaded = load_config()
-    assert reloaded.get("api_keys.shodan") == "supersecretvalue"
+    assert reloaded.get("api_keys.shodan") is None
+    assert get_key(reloaded, "shodan") == "supersecretvalue"
+    settings_file = gui_env / "settings.json"
+    if settings_file.exists():
+        assert "supersecretvalue" not in settings_file.read_text()
 
 
 def test_dashboard_refresh_reads_db(make_window: Any) -> None:

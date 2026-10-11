@@ -213,6 +213,7 @@ class ScanEngine:
         self._cache = cache or AsyncTTLCache(
             max_size=int(config.get("cache.max_size", 1024)),
             default_ttl=float(config.get("cache.ttl", 300.0)),
+            enabled=bool(config.get("cache.enabled", True)),
         )
         self._classifier = classifier or _default_classifier
         self._result_sink = result_sink

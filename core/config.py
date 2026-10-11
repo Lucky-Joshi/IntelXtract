@@ -32,6 +32,7 @@ DEFAULTS: dict[str, Any] = {
     "app": {
         "name": "IntelXtract",
         "version": "0.1.0a0",
+        "telemetry": False,
     },
     "paths": {
         "data_dir": "~/.local/share/intelxtract",
@@ -62,6 +63,8 @@ DEFAULTS: dict[str, Any] = {
         "user_agent": "IntelXtract/0.1 (OSINT research tool)",
         "timeout": 30.0,
         "retries": 2,
+        "proxy": "",
+        "rate_limit": 0.0,
     },
     "http": {
         "timeout": 30.0,
@@ -137,6 +140,15 @@ DEFAULTS: dict[str, Any] = {
         "feeds_extra": [],
     },
     "api_keys": {},
+    "vault": {
+        "keyring_service": "intelxtract",
+        "key_path": "~/.local/share/intelxtract/vault.key",
+        "migrate_plaintext": True,
+    },
+    "gui": {
+        "theme": "dark",
+        "language": "en",
+    },
     "assistant": {
         "enabled": False,
         "provider": "disabled",
@@ -275,6 +287,7 @@ class Config:
         self._use_env = use_env
         self._lock = threading.RLock()
         self._data: dict[str, Any] = {}
+        self._env_keys: set[str] = set()
         if use_env:
             load_env_file()
         self.reload()
@@ -283,6 +296,11 @@ class Config:
     def path(self) -> Path:
         """Path of the backing JSON file."""
         return self._path
+
+    def env_keys(self) -> set[str]:
+        """Dotted keys supplied by environment/``.env`` (highest precedence)."""
+        with self._lock:
+            return set(self._env_keys)
 
     def reload(self) -> None:
         """Rebuild the effective configuration from all layers."""
@@ -299,14 +317,17 @@ class Config:
                     f"config file {self._path} must contain a JSON object"
                 )
             data = _deep_merge(data, raw)
+        env_keys: set[str] = set()
         if self._use_env:
             for name, value in os.environ.items():
                 if not name.startswith(ENV_PREFIX) or name == ENV_CONFIG_PATH:
                     continue
                 dotted = name[len(ENV_PREFIX) :].lower().replace("__", ".")
                 _set_dotted(data, dotted, _coerce_env(value))
+                env_keys.add(dotted)
         with self._lock:
             self._data = data
+            self._env_keys = env_keys
 
     def get(self, key: str, default: Any = None) -> Any:
         """Return the value for a dotted key, or ``default`` when unset."""
@@ -348,9 +369,16 @@ class Config:
             return deepcopy(self._data)
 
     def save(self) -> None:
-        """Persist the current configuration to the JSON file atomically."""
+        """Persist the current configuration to the JSON file atomically.
+
+        The ``api_keys`` section is never written: secrets belong to the
+        encrypted vault (:mod:`core.vault`), so hydrated or plaintext keys
+        cannot leak back into the config file via a settings save.
+        """
         with self._lock:
-            payload = json.dumps(self._data, indent=2, sort_keys=True) + "\n"
+            persisted = deepcopy(self._data)
+            persisted.pop("api_keys", None)
+            payload = json.dumps(persisted, indent=2, sort_keys=True) + "\n"
         try:
             self._path.parent.mkdir(parents=True, exist_ok=True)
             tmp = self._path.with_suffix(self._path.suffix + ".tmp")

@@ -39,6 +39,7 @@ def gui_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("INTELXTRACT_PATHS__PLUGINS_DIR", str(tmp_path / "plugins"))
     monkeypatch.setenv("INTELXTRACT_LOGGING__FILE", str(tmp_path / "app.log"))
     monkeypatch.setenv("INTELXTRACT_LOGGING__CONSOLE", "false")
+    monkeypatch.setenv("INTELXTRACT_VAULT__KEY_PATH", str(tmp_path / "vault.key"))
     return tmp_path
 
 

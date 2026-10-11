@@ -42,6 +42,7 @@ class AsyncTTLCache:
         max_size: int = DEFAULT_MAX_SIZE,
         default_ttl: float = DEFAULT_TTL,
         *,
+        enabled: bool = True,
         clock: Any = time.monotonic,
     ) -> None:
         if max_size < 1:
@@ -50,12 +51,21 @@ class AsyncTTLCache:
             raise ValueError("default_ttl must be > 0")
         self._max_size = max_size
         self._default_ttl = default_ttl
+        self._enabled = enabled
         self._clock = clock
         self._entries: OrderedDict[str, _Entry] = OrderedDict()
         self._stats = CacheStats()
 
+    @property
+    def enabled(self) -> bool:
+        """Whether reads and writes are served from the cache."""
+        return self._enabled
+
     async def get(self, key: str, default: Any = None) -> Any:
         """Return the value for ``key``, or ``default`` when missing/expired."""
+        if not self._enabled:
+            self._stats.misses += 1
+            return default
         entry = self._entries.get(key)
         if entry is None:
             self._stats.misses += 1
@@ -71,6 +81,8 @@ class AsyncTTLCache:
 
     async def set(self, key: str, value: Any, ttl: float | None = None) -> None:
         """Insert or update ``key`` with an optional per-key TTL."""
+        if not self._enabled:
+            return
         lifetime = self._default_ttl if ttl is None else ttl
         if lifetime <= 0:
             raise ValueError("ttl must be > 0")
@@ -99,6 +111,8 @@ class AsyncTTLCache:
         return len(expired)
 
     def __contains__(self, key: str) -> bool:
+        if not self._enabled:
+            return False
         entry = self._entries.get(key)
         if entry is None:
             return False

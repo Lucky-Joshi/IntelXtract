@@ -66,6 +66,7 @@ class ScriptedSession:
         self.steps = steps
         self.calls = 0
         self.closed = False
+        self.last_kwargs: dict[str, Any] = {}
 
     def _next(self) -> Any:
         step = self.steps[min(self.calls, len(self.steps) - 1)]
@@ -73,6 +74,7 @@ class ScriptedSession:
         return step
 
     def request(self, method: str, url: str, **kwargs: Any) -> Any:
+        self.last_kwargs = kwargs
         step = self._next()
         if isinstance(step, BaseException):
             raise step
@@ -218,3 +220,49 @@ async def test_aclose_closes_session_once() -> None:
     await client.aclose()
     assert session.closed is True
     assert client._session is None
+
+
+async def test_proxy_passed_to_session() -> None:
+    session = ScriptedSession([FakeResponse(200, b"ok")])
+    client = HttpClient(retries=0, proxy="http://proxy.local:8080", session=session)
+    await client.get("https://example.test/x")
+    assert session.last_kwargs["proxy"] == "http://proxy.local:8080"
+
+
+async def test_no_proxy_kwarg_when_unset() -> None:
+    session = ScriptedSession([FakeResponse(200, b"ok")])
+    client = HttpClient(retries=0, session=session)
+    await client.get("https://example.test/x")
+    assert "proxy" not in session.last_kwargs
+
+
+def test_config_supplies_network_settings(tmp_path: Any) -> None:
+    from core.config import Config
+
+    cfg = Config(tmp_path / "settings.json", use_env=False)
+    cfg.set("network.timeout", 12.5)
+    cfg.set("network.retries", 4)
+    cfg.set("network.proxy", "http://proxy.local:3128")
+    cfg.set("network.rate_limit", 25.0)
+
+    client = HttpClient(config=cfg, session=ScriptedSession([]))
+    assert client.timeout == 12.5
+    assert client.retries == 4
+    assert client.proxy == "http://proxy.local:3128"
+    assert client.rate_limit == 25.0
+
+
+async def test_rate_limit_paces_requests() -> None:
+    import time
+
+    client = HttpClient(
+        retries=0,
+        rate_limit=50.0,
+        session=ScriptedSession([FakeResponse(200, b"a")] * 3),
+    )
+    start = time.monotonic()
+    await client.get("https://example.test/1")
+    await client.get("https://example.test/2")
+    await client.get("https://example.test/3")
+    elapsed = time.monotonic() - start
+    assert elapsed >= 0.03

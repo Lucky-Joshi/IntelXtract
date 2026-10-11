@@ -10,6 +10,7 @@ default.
 from __future__ import annotations
 
 import asyncio
+import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
@@ -68,17 +69,44 @@ class HttpClient:
         retries: int | None = None,
         user_agent: str | None = None,
         headers: Mapping[str, str] | None = None,
+        proxy: str | None = None,
+        rate_limit: float | None = None,
         session: Any = None,
     ) -> None:
         self.timeout = timeout if timeout is not None else DEFAULT_TIMEOUT
         self.retries = retries if retries is not None else DEFAULT_RETRIES
+        self.proxy = proxy or ""
+        self.rate_limit = rate_limit if rate_limit is not None else 0.0
         if config is not None:
-            self.timeout = float(config.get("http.timeout", self.timeout))
-            self.retries = int(config.get("http.retries", self.retries))
+            self.timeout = float(
+                config.get("network.timeout", config.get("http.timeout", self.timeout))
+            )
+            self.retries = int(
+                config.get("network.retries", config.get("http.retries", self.retries))
+            )
+            self.proxy = self.proxy or str(config.get("network.proxy", "") or "")
+            self.rate_limit = float(config.get("network.rate_limit", self.rate_limit))
         self._user_agent = user_agent or DEFAULT_USER_AGENT
         self._headers = dict(headers or {})
         self._session = session
         self.metrics = ClientMetrics()
+        self._throttle_lock = asyncio.Lock()
+        self._last_request = 0.0
+
+    def _proxy_kwargs(self) -> dict[str, Any]:
+        return {"proxy": self.proxy} if self.proxy else {}
+
+    async def _throttle(self) -> None:
+        """Enforce ``network.rate_limit`` requests/second (0 disables)."""
+        if self.rate_limit <= 0:
+            return
+        interval = 1.0 / self.rate_limit
+        async with self._throttle_lock:
+            now = time.monotonic()
+            delay = self._last_request + interval - now
+            if delay > 0:
+                await asyncio.sleep(delay)
+            self._last_request = time.monotonic()
 
     @property
     def closed(self) -> bool:
@@ -109,7 +137,11 @@ class HttpClient:
         session = await self._ensure_session()
         headers = kwargs.pop("headers", None)
         params = kwargs.pop("params", None)
-        async with session.get(url, headers=headers, params=params, **kwargs) as resp:
+        await self._throttle()
+        call_kwargs: dict[str, Any] = {**kwargs, **self._proxy_kwargs()}
+        async with session.get(
+            url, headers=headers, params=params, **call_kwargs
+        ) as resp:
             resp.raise_for_status()
             return await resp.json(content_type=None)
 
@@ -124,9 +156,15 @@ class HttpClient:
         """POST a JSON body and decode the JSON response (raises on 4xx/5xx)."""
         session = await self._ensure_session()
         self.metrics.requests += 1
+        await self._throttle()
+        proxy_kwargs = self._proxy_kwargs()
         try:
             async with session.post(
-                url, json=json_body, headers=headers, params=params
+                url,
+                json=json_body,
+                headers=headers,
+                params=params,
+                **proxy_kwargs,
             ) as resp:
                 resp.raise_for_status()
                 return await resp.json(content_type=None)
@@ -155,6 +193,8 @@ class HttpClient:
         for attempt in range(self.retries + 1):
             should_raise = attempt >= self.retries
             self.metrics.requests += 1
+            await self._throttle()
+            proxy_kwargs = self._proxy_kwargs()
             try:
                 async with session.request(
                     method.upper(),
@@ -162,6 +202,7 @@ class HttpClient:
                     params=params,
                     headers=headers,
                     allow_redirects=allow_redirects,
+                    **proxy_kwargs,
                 ) as resp:
                     if resp.status in (408, 429) or resp.status >= 500:
                         if not should_raise:
@@ -215,8 +256,10 @@ class HttpClient:
         for attempt in range(self.retries + 1):
             should_raise = attempt >= self.retries
             self.metrics.requests += 1
+            await self._throttle()
+            call_kwargs: dict[str, Any] = {**kwargs, **self._proxy_kwargs()}
             try:
-                async with session.request(method, url, **kwargs) as resp:
+                async with session.request(method, url, **call_kwargs) as resp:
                     if resp.status in (408, 429) or resp.status >= 500:
                         if should_raise:
                             resp.raise_for_status()

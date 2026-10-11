@@ -124,7 +124,7 @@ Index: `scan_id`.
 |--------|------|-------------|---------|
 | id | INTEGER | PK AUTOINCREMENT | |
 | provider | TEXT | NOT NULL UNIQUE | e.g. virustotal |
-| ciphertext | TEXT | NOT NULL | encrypted secret (plaintext never stored; encryption layer ships in Phase 24) |
+| ciphertext | TEXT | NOT NULL | Fernet-encrypted secret (plaintext never stored; see `docs/settings.md`) |
 | hint | TEXT | default `''` | masked display, e.g. `ab…yz` |
 | created_at | TEXT | NOT NULL | |
 | updated_at | TEXT | NOT NULL | |

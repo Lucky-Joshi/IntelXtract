@@ -262,8 +262,15 @@ QSplitter::handle {{
 """
 
 
-def apply_theme(app: QGuiApplication | QApplication) -> None:
-    """Apply the dark Fusion theme to a running application."""
+def apply_theme(app: QGuiApplication | QApplication, theme: str = "dark") -> None:
+    """Apply the themed Fusion stylesheet to a running application.
+
+    Only the dark theme is currently implemented; any other value (including
+    a future ``"light"``) falls back to dark until the light tokens exist.
+    """
     if isinstance(app, QApplication):
         app.setStyle("Fusion")
-        app.setStyleSheet(DARK_QSS)
+        app.setStyleSheet(_THEMES.get(theme, DARK_QSS))
+
+
+_THEMES: dict[str, str] = {"dark": DARK_QSS}

@@ -30,6 +30,16 @@ async def test_set_get_roundtrip() -> None:
     assert await cache.get("missing", "fallback") == "fallback"
 
 
+async def test_disabled_cache_is_a_noop() -> None:
+    cache = AsyncTTLCache(max_size=4, default_ttl=10.0, enabled=False)
+    assert cache.enabled is False
+    await cache.set("a", 1)
+    assert await cache.get("a", "fallback") == "fallback"
+    assert await cache.get("a") is None
+    assert "a" not in cache
+    assert len(cache) == 0
+
+
 async def test_ttl_expiry() -> None:
     cache, clock = _cache(ttl=5.0)
     await cache.set("a", "value")

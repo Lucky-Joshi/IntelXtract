@@ -1,4 +1,14 @@
 
+### Phase 24 — Settings
+
+- `core/vault.py` — new Fernet-backed API-key vault (S24.1). Key material resolves `INTELXTRACT_VAULT_KEY` → OS `keyring` (optional) → a `0600` key file at `vault.key_path`; `store_key`/`get_key`/`delete_key`/`list_stored` keep ciphertext + masked hint in the existing `api_keys` table, and `hydrate_api_keys` decrypts stored secrets into config (env/`.env` always wins) while migrating any legacy plaintext keys out of `settings.json`.
+- `core/config.py` — new `vault` and `gui` sections plus `app.telemetry` (always `false`) and `network.proxy`/`network.rate_limit`; `Config.env_keys()` records which dotted keys came from the environment; `Config.save()` never writes the `api_keys` section so hydrated secrets cannot leak back to disk (S24.1/S24.3).
+- `core/http_client.py` — `HttpClient` now consumes `network.proxy` (per-request `proxy=`) and `network.rate_limit` (async request pacing), and reads `network.timeout`/`network.retries` (with legacy `http.*` fallback) (S24.2).
+- `core/cache.py` — `AsyncTTLCache(enabled=False)` makes the response cache an explicit no-op; `ScanEngine` wires it from `cache.enabled` (S24.3).
+- CLI — `key set|get|list|delete` (`--reveal`, `--yes`) for the encrypted vault; `config set api_keys.*` is rejected with a pointer to `key set`, and `config list` masks `api_keys.*` (S24.1).
+- GUI — API Manager rewritten to store through the vault (no plaintext banner/behavior), Settings page gains theme/language, proxy, rate limit, network timeout/retries, cache toggle, and log-rotation fields, and `create_window` hydrates the vault (S24.4).
+- Docs/tests: vault round-trip/ciphertext/0600 perms/keyring+file+env key resolution/delete/legacy-migration/precedence (env > vault > config file > defaults), `save()` secret-stripping, HTTP proxy/rate-limit, disabled-cache, and CLI key lifecycle (684 passed).
+
 ### Phase 23 — AI Assistant (optional)
 
 - `assistant/providers.py` — `AssistantProvider` Protocol + `ChatMessage`/`AssistantResponse`; `DisabledAssistant` (inert default, makes no network call) and `OpenAICompatibleAssistant` (any OpenAI-compatible `/chat/completions` endpoint, user-supplied URL/model/key) built by `build_provider()` (S23.1).

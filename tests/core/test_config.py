@@ -125,6 +125,26 @@ def test_section_and_as_dict_are_copies(tmp_path: Path) -> None:
     assert cfg.get("scan.max_workers") != 111
 
 
+def test_env_keys_tracked(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("INTELXTRACT_SCAN__MAX_WORKERS", "5")
+    monkeypatch.setenv("INTELXTRACT_API_KEYS__SHODAN", "abc")
+    cfg = Config(tmp_path / "settings.json")
+    keys = cfg.env_keys()
+    assert "scan.max_workers" in keys
+    assert "api_keys.shodan" in keys
+
+
+def test_save_never_persists_api_keys(tmp_path: Path) -> None:
+    path = tmp_path / "settings.json"
+    cfg = Config(path, use_env=False)
+    cfg.set("api_keys.shodan", "secret-value")
+    cfg.set("scan.max_workers", 3)
+    cfg.save()
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    assert "api_keys" not in raw
+    assert raw["scan"]["max_workers"] == 3
+
+
 def test_section_rejects_non_object(tmp_path: Path) -> None:
     cfg = Config(tmp_path / "settings.json", use_env=False)
     with pytest.raises(ConfigError):
