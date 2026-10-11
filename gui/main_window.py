@@ -33,6 +33,7 @@ from gui.pages import (
     QuickScanPage,
     ReportsPage,
     ResultsPage,
+    SchedulesPage,
     SettingsPage,
 )
 
@@ -43,6 +44,7 @@ _NAV: tuple[tuple[str, str], ...] = (
     ("results", "Results"),
     ("reports", "Reports"),
     ("history", "History"),
+    ("schedules", "Schedules"),
     ("plugins", "Plugins"),
     ("api_manager", "API Manager"),
     ("settings", "Settings"),
@@ -96,6 +98,7 @@ class MainWindow(QMainWindow):
             "results": ResultsPage,
             "reports": ReportsPage,
             "history": HistoryPage,
+            "schedules": SchedulesPage,
             "plugins": PluginsPage,
             "api_manager": ApiManagerPage,
             "settings": SettingsPage,

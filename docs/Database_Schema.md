@@ -10,6 +10,7 @@ PostgreSQL support is a post-1.0 option; the schema uses portable types
   `database/migrations.py` — applied migrations are never edited.
   Migration 2 adds the normalized `findings.title`, `findings.evidence`,
   `findings.content_hash`, and `findings.collected_at` columns (Phase 7).
+  Migration 3 adds the `schedules` table (Phase 21).
 - All timestamps are **ISO-8601 UTC strings** (`2026-10-06T13:59:00+00:00`)
   except `duration` (REAL seconds) and confidence (REAL 0–1).
 - JSON columns (`data`, `payload`, `context`, `value`, `runs_json`) hold
@@ -158,7 +159,32 @@ Indexes: `(target_id, created_at)`.
 | updated_at | TEXT | NOT NULL | |
 
 File-based `config/settings.json` remains the user configuration layer;
-this table stores runtime/tool state (schedules, UI state) going forward.
+this table stores runtime/tool state (UI state) going forward.
+
+### schedules
+
+| Column | Type | Constraints | Purpose |
+|--------|------|-------------|---------|
+| id | INTEGER | PK AUTOINCREMENT | |
+| target | TEXT | NOT NULL | scan target |
+| mode | TEXT | NOT NULL, default `quick` | scan profile |
+| interval_seconds | INTEGER | NULL | fixed interval between runs |
+| cron | TEXT | NULL | 5-field cron expression (alternative to interval) |
+| enabled | INTEGER | NOT NULL, CHECK in (0,1), default 1 | scheduling toggle |
+| status | TEXT | NOT NULL, default `idle` | `idle`/`running` (overlap guard) |
+| last_run_at | TEXT | NULL | start of the last run |
+| next_run_at | TEXT | NULL | when the schedule is next due |
+| last_scan_id | INTEGER | NULL, FK → scans(id) ON DELETE SET NULL | most recent scan |
+| last_error | TEXT | NULL | last run failure |
+| created_at | TEXT | NOT NULL | |
+| updated_at | TEXT | NOT NULL | |
+
+Indexes: `next_run_at`, `(enabled, status)`.
+
+> Migration 3 (Phase 21). A schedule defines exactly one cadence —
+> `interval_seconds` or `cron`; the runner computes `next_run_at` after each
+> run. Schedules stranded in `status = 'running'` are reset to `idle` on
+> startup so interrupted scans are re-queued.
 
 ### schema_version
 

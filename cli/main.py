@@ -12,6 +12,7 @@ import json
 import os
 import platform
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, NoReturn
 
@@ -40,9 +41,16 @@ from core.exceptions import (
 )
 from core.logger import setup_logging
 from core.plugin_loader import PluginRegistry
+from core.scheduling import (
+    ScheduleRunner,
+    ScheduleRunOutcome,
+    compute_next_run,
+    to_iso,
+    validate_cadence,
+)
 from database.connection import Database, open_database
 from database.migrations import migrate
-from database.persistence import make_result_sink
+from database.persistence import make_result_sink, record_scan_change
 from database.repositories import Repositories, ScanRecord
 from modules.registry import ModuleRegistry
 from reports import build_report, export_report
@@ -59,9 +67,11 @@ app = typer.Typer(
 history_app = typer.Typer(help="Inspect past scans.", no_args_is_help=False)
 config_app = typer.Typer(help="Get/set configuration values.", no_args_is_help=True)
 plugin_app = typer.Typer(help="Manage plugins.", no_args_is_help=True)
+schedule_app = typer.Typer(help="Manage recurring scans.", no_args_is_help=True)
 app.add_typer(history_app, name="history")
 app.add_typer(config_app, name="config")
 app.add_typer(plugin_app, name="plugin")
+app.add_typer(schedule_app, name="schedule")
 
 StatusColor = {"ok": "green", "warn": "yellow", "fail": "red"}
 ScanStatusColor = {
@@ -730,6 +740,285 @@ async def _plugin_toggle(name: str, enable: bool, db_override: str | None) -> No
             )
         verb = "enabled" if enable else "disabled"
         console.print(f"plugin [bold]{name}[/bold] {verb}")
+    finally:
+        await db.close()
+
+
+# ---------------------------------------------------------------------------
+# schedule
+# ---------------------------------------------------------------------------
+
+
+def _cadence_label(interval_seconds: int | None, cron: str | None) -> str:
+    """Human-readable cadence for a schedule row."""
+    if cron:
+        return f"cron {cron}"
+    if interval_seconds:
+        return f"{interval_seconds}s"
+    return "-"
+
+
+@schedule_app.command("add")
+def schedule_add(
+    target: str = typer.Argument(..., help="Target to scan on a cadence."),
+    every: int | None = typer.Option(
+        None, "--every", help="Interval between runs, in seconds."
+    ),
+    cron: str | None = typer.Option(
+        None, "--cron", help='Cron expression "minute hour day month weekday".'
+    ),
+    mode: str = typer.Option(
+        "quick", "--mode", "-m", help="Scan profile: quick|deep|custom."
+    ),
+    disabled: bool = typer.Option(
+        False, "--disabled", help="Create the schedule paused."
+    ),
+    db: str | None = typer.Option(None, "--db", help="Override the database path."),
+) -> None:
+    """Create a recurring scan schedule."""
+    asyncio.run(_schedule_add(target, every, cron, mode, disabled, db))
+
+
+async def _schedule_add(
+    target: str,
+    every: int | None,
+    cron: str | None,
+    mode: str,
+    disabled: bool,
+    db_override: str | None,
+) -> None:
+    cfg = _load_config(db_override)
+    try:
+        validate_cadence(interval_seconds=every, cron=cron)
+        scan_mode = ScanMode(mode)
+    except ValidationError as exc:
+        _fail(str(exc))
+    except ValueError:
+        _fail(f"unknown mode: {mode!r} (use quick|deep|custom)")
+    next_run = to_iso(
+        compute_next_run(interval_seconds=every, cron=cron, after=datetime.now(UTC))
+    )
+    db = await _open_db(cfg)
+    try:
+        repos = Repositories(db)
+        record = await repos.schedules.create(
+            target,
+            mode=scan_mode.value,
+            interval_seconds=every,
+            cron=cron,
+            enabled=not disabled,
+            next_run_at=next_run,
+        )
+        console.print(
+            f"schedule [bold]#{record.id}[/bold] for {record.target}"
+            f" ({record.mode}, {_cadence_label(every, cron)})"
+            f" — next run {next_run}"
+        )
+    finally:
+        await db.close()
+
+
+@schedule_app.command("list")
+def schedule_list(
+    db: str | None = typer.Option(None, "--db", help="Override the database path."),
+) -> None:
+    """List recurring scan schedules."""
+    asyncio.run(_schedule_list(db))
+
+
+async def _schedule_list(db_override: str | None) -> None:
+    cfg = _load_config(db_override)
+    db = await _open_db(cfg)
+    try:
+        rows = await Repositories(db).schedules.list()
+        if not rows:
+            console.print("no schedules found")
+            return
+        table = Table(
+            "id",
+            "target",
+            "mode",
+            "cadence",
+            "enabled",
+            "status",
+            "next_run",
+            "last_run",
+        )
+        for row in rows:
+            table.add_row(
+                str(row.id),
+                row.target,
+                row.mode,
+                _cadence_label(row.interval_seconds, row.cron),
+                "yes" if row.enabled else "no",
+                row.status,
+                row.next_run_at or "-",
+                row.last_run_at or "-",
+            )
+        console.print(table)
+        console.print(f"{len(rows)} schedule(s)")
+    finally:
+        await db.close()
+
+
+@schedule_app.command("remove")
+def schedule_remove(
+    schedule_id: int = typer.Argument(..., help="Schedule id."),
+    db: str | None = typer.Option(None, "--db", help="Override the database path."),
+) -> None:
+    """Delete a schedule."""
+    asyncio.run(_schedule_remove(schedule_id, db))
+
+
+async def _schedule_remove(schedule_id: int, db_override: str | None) -> None:
+    cfg = _load_config(db_override)
+    db = await _open_db(cfg)
+    try:
+        removed = await Repositories(db).schedules.delete(schedule_id)
+        if not removed:
+            _fail(f"unknown schedule: {schedule_id}")
+        console.print(f"schedule [bold]#{schedule_id}[/bold] removed")
+    finally:
+        await db.close()
+
+
+@schedule_app.command("enable")
+def schedule_enable(
+    schedule_id: int = typer.Argument(..., help="Schedule id."),
+    db: str | None = typer.Option(None, "--db", help="Override the database path."),
+) -> None:
+    """Enable a schedule."""
+    asyncio.run(_schedule_toggle(schedule_id, True, db))
+
+
+@schedule_app.command("disable")
+def schedule_disable(
+    schedule_id: int = typer.Argument(..., help="Schedule id."),
+    db: str | None = typer.Option(None, "--db", help="Override the database path."),
+) -> None:
+    """Disable a schedule."""
+    asyncio.run(_schedule_toggle(schedule_id, False, db))
+
+
+async def _schedule_toggle(
+    schedule_id: int, enable: bool, db_override: str | None
+) -> None:
+    cfg = _load_config(db_override)
+    db = await _open_db(cfg)
+    try:
+        repos = Repositories(db)
+        record = await repos.schedules.get(schedule_id)
+        if record is None:
+            _fail(f"unknown schedule: {schedule_id}")
+        kwargs: dict[str, Any] = {}
+        if enable and record.next_run_at is None:
+            kwargs["next_run_at"] = to_iso(
+                compute_next_run(
+                    interval_seconds=record.interval_seconds,
+                    cron=record.cron,
+                    after=datetime.now(UTC),
+                )
+            )
+        await repos.schedules.set_enabled(schedule_id, enable)
+        if kwargs:
+            await repos.schedules.mark_finished(schedule_id, **kwargs)
+        verb = "enabled" if enable else "disabled"
+        console.print(f"schedule [bold]#{schedule_id}[/bold] {verb}")
+    finally:
+        await db.close()
+
+
+def _make_schedule_scanner(cfg: Config, db: Database) -> Any:
+    """Build the runner's ``run_scan`` callable (scan + persist + diff)."""
+
+    async def run_scan(schedule: Any) -> ScheduleRunOutcome:
+        engine = ScanEngine(
+            cfg,
+            modules=_engine_modules(),
+            result_sink=make_result_sink(db),
+        )
+        try:
+            result = await engine.scan(schedule.target, mode=schedule.mode)
+        except (ValidationError, ScanError) as exc:
+            return ScheduleRunOutcome(error=str(exc))
+        repos = Repositories(db)
+        scan = await repos.scans.get_by_uuid(result.scan_id)
+        if scan is None:
+            return ScheduleRunOutcome(error="scan was not persisted")
+        target = await repos.targets.get_or_create(
+            result.target, result.target_type.value
+        )
+        recent = await repos.scans.list(limit=2, target_id=target.id)
+        previous = next((s.id for s in recent if s.id != scan.id), None)
+        await record_scan_change(
+            repos, target.id, previous_scan_id=previous, current_scan_id=scan.id
+        )
+        return ScheduleRunOutcome(scan_id=scan.id)
+
+    return run_scan
+
+
+def _render_schedule_runs(summaries: list[dict[str, Any]]) -> None:
+    """Print the outcome of one scheduler tick."""
+    if not summaries:
+        console.print("no schedules due")
+        return
+    table = Table("schedule", "target", "scan", "next_run", "error")
+    for summary in summaries:
+        table.add_row(
+            str(summary["schedule_id"]),
+            str(summary["target"]),
+            str(summary["scan_id"] or "-"),
+            str(summary["next_run_at"] or "-"),
+            str(summary["error"] or "-"),
+        )
+    console.print(table)
+
+
+@schedule_app.command("run")
+def schedule_run(
+    once: bool = typer.Option(False, "--once", help="Run a single tick and exit."),
+    iterations: int | None = typer.Option(
+        None, "--iterations", min=1, help="Run N ticks then exit."
+    ),
+    poll: float = typer.Option(
+        30.0, "--poll", min=1.0, help="Seconds between ticks while looping."
+    ),
+    db: str | None = typer.Option(None, "--db", help="Override the database path."),
+) -> None:
+    """Run due schedules (loop until stopped unless --once/--iterations)."""
+    asyncio.run(_schedule_run(once, iterations, poll, db))
+
+
+async def _schedule_run(
+    once: bool,
+    iterations: int | None,
+    poll: float,
+    db_override: str | None,
+) -> None:
+    cfg = _load_config(db_override)
+    db = await _open_db(cfg)
+    try:
+        runner = ScheduleRunner(
+            Repositories(db).schedules,
+            _make_schedule_scanner(cfg, db),
+            poll_interval=poll,
+        )
+        recovered = await runner.recover()
+        if recovered:
+            console.print(f"recovered {recovered} interrupted schedule(s)")
+        if once:
+            _render_schedule_runs(await runner.run_due())
+            return
+        if iterations is not None:
+            for _ in range(iterations):
+                _render_schedule_runs(await runner.run_due())
+            return
+        console.print("scheduler running — press Ctrl+C to stop")
+        try:
+            await runner.run_forever(recover=False)
+        except (KeyboardInterrupt, asyncio.CancelledError):
+            runner.stop()
     finally:
         await db.close()
 

@@ -80,6 +80,7 @@ def test_window_launches_and_every_page_opens(make_window: Any) -> None:
         "results",
         "reports",
         "history",
+        "schedules",
         "plugins",
         "api_manager",
         "settings",

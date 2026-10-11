@@ -10,6 +10,7 @@ from gui.pages.plugins import PluginsPage
 from gui.pages.quick_scan import QuickScanPage
 from gui.pages.reports import ReportsPage
 from gui.pages.results import ResultsPage
+from gui.pages.schedules import SchedulesPage
 from gui.pages.settings import SettingsPage
 
 __all__ = [
@@ -23,5 +24,6 @@ __all__ = [
     "QuickScanPage",
     "ReportsPage",
     "ResultsPage",
+    "SchedulesPage",
     "SettingsPage",
 ]

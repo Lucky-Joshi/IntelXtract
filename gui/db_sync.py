@@ -99,6 +99,14 @@ def list_reports(db_path: str, *, limit: int = 50) -> list[dict[str, Any]]:
     )
 
 
+def list_schedules(db_path: str) -> list[dict[str, Any]]:
+    """Recurring scan schedules, soonest-due first."""
+    return _fetchall(
+        db_path,
+        "SELECT * FROM schedules" " ORDER BY (next_run_at IS NULL), next_run_at, id",
+    )
+
+
 def build_scan_payload(db_path: str, scan_id: int) -> dict[str, Any] | None:
     """Assemble a results-page payload for a persisted scan."""
     scan = get_scan(db_path, scan_id)

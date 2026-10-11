@@ -52,9 +52,32 @@ CREATE INDEX IF NOT EXISTS idx_findings_content_hash ON findings (content_hash);
 """
 
 
+_MIGRATION_3_SQL = """
+CREATE TABLE IF NOT EXISTS schedules (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    target           TEXT    NOT NULL,
+    mode             TEXT    NOT NULL DEFAULT 'quick',
+    interval_seconds INTEGER,
+    cron             TEXT,
+    enabled          INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0, 1)),
+    status           TEXT    NOT NULL DEFAULT 'idle',
+    last_run_at      TEXT,
+    next_run_at      TEXT,
+    last_scan_id     INTEGER REFERENCES scans (id) ON DELETE SET NULL,
+    last_error       TEXT,
+    created_at       TEXT    NOT NULL,
+    updated_at       TEXT    NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_schedules_next_run ON schedules (next_run_at);
+CREATE INDEX IF NOT EXISTS idx_schedules_enabled ON schedules (enabled, status);
+"""
+
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(version=1, name="initial schema", sql=_load_initial_sql()),
     Migration(version=2, name="finding normalized fields", sql=_MIGRATION_2_SQL),
+    Migration(version=3, name="recurring schedules", sql=_MIGRATION_3_SQL),
 )
 
 

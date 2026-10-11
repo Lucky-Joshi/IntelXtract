@@ -1,4 +1,14 @@
 
+### Phase 21 — Scheduler
+
+- `database/migrations.py` — migration 3 creates the `schedules` table (target, mode, `interval_seconds`/`cron`, enabled, status, last/next run, last scan/error, timestamps) with `next_run`/`enabled` indexes (S21.1).
+- `database/repositories.py` — `ScheduleRecord` + `ScheduleRepository` (`create`, `get`, `due`, `set_enabled`, `mark_running`, `mark_finished`, `reset_running`, `delete`, `list`) wired into `Repositories` (S21.1).
+- `core/scheduling.py` — `CronExpression` (5-field subset incl. steps/lists/ranges, crontab day-OR-weekday semantics), `compute_next_run`/`validate_cadence`, `FindingDelta`/`diff_findings` (`(module, title)`-keyed added/removed/changed), and `ScheduleRunner` (due-draining poll loop, in-flight overlap prevention, `recover()` of stranded runs, next-run advancement) behind a Protocol store so core stays DB-free (S21.2/S21.3).
+- `database/persistence.py` — `record_scan_change()` writes `baseline`/`change` `history` events payloaded with `{previous_scan_id, current_scan_id, added, removed, changed, counts}` (S21.3).
+- CLI — `schedule add|list|remove|enable|disable|run` (`--every`/`--cron`, `--once`/`--iterations`/`--poll`) drives the real engine and records change history (S21.4).
+- GUI — `db_sync.list_schedules()` + read-only Schedules page added to the sidebar (S21.4).
+- Tests: cron parsing/next-run edge cases, interval cadence, diff correctness, runner with fake clock/store (due triggering, error capture, overlap, `recover`, stop), `ScheduleRepository` CRUD/due/reset, change-history round-trip, and CLI add/list/toggle/remove/run-once (604 passed).
+
 ### Phase 20 — Plugin SDK
 
 - `core/plugin_loader.py` — `MANIFEST_SCHEMA` + `validate_manifest()` (typed schema check with fail-soft reporting); manifests are now overrides with type/format validation, unknown keys tolerated for forward compatibility.

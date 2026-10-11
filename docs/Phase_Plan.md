@@ -594,14 +594,14 @@ modules; broken plugin is reported, not fatal.
 
 **Objective:** Recurring scans, change detection, resume.
 
-- [ ] S21.1 Schedule model — `schedules` table (target, mode, cron/interval,
+- [x] S21.1 Schedule model — `schedules` table (target, mode, cron/interval,
       enabled, last/next run) + repository
-- [ ] S21.2 Runner — async scheduler loop, overlap prevention, persisted
+- [x] S21.2 Runner — async scheduler loop, overlap prevention, persisted
       queue so interrupted scans resume
-- [ ] S21.3 Change detection — diff findings between consecutive scans of
+- [x] S21.3 Change detection — diff findings between consecutive scans of
       the same target (added/removed/changed) → `history` entries
-- [ ] S21.4 Hooks — CLI `schedule` commands + GUI surface (minimal table view)
-- [ ] S21.5 Tests — fake clock, interval triggering, diff correctness
+- [x] S21.4 Hooks — CLI `schedule` commands + GUI surface (minimal table view)
+- [x] S21.5 Tests — fake clock, interval triggering, diff correctness
 
 **Done criteria:** A daily schedule runs while app is open; diffs appear in
 history; resume after kill mid-scan works.

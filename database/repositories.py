@@ -154,6 +154,25 @@ class HistoryRecord:
     created_at: str
 
 
+@dataclass(frozen=True, slots=True)
+class ScheduleRecord:
+    """A recurring scan schedule."""
+
+    id: int
+    target: str
+    mode: str
+    interval_seconds: int | None
+    cron: str | None
+    enabled: bool
+    status: str
+    last_run_at: str | None
+    next_run_at: str | None
+    last_scan_id: int | None
+    last_error: str | None
+    created_at: str
+    updated_at: str
+
+
 def _target_row(row: sqlite3.Row) -> TargetRecord:
     return TargetRecord(
         id=int(row["id"]),
@@ -248,6 +267,28 @@ def _history_row(row: sqlite3.Row) -> HistoryRecord:
         event_type=str(row["event_type"]),
         payload=dict(_loads(row["payload"], {})),
         created_at=str(row["created_at"]),
+    )
+
+
+def _schedule_row(row: sqlite3.Row) -> ScheduleRecord:
+    return ScheduleRecord(
+        id=int(row["id"]),
+        target=str(row["target"]),
+        mode=str(row["mode"]),
+        interval_seconds=(
+            int(row["interval_seconds"])
+            if row["interval_seconds"] is not None
+            else None
+        ),
+        cron=row["cron"],
+        enabled=bool(row["enabled"]),
+        status=str(row["status"]),
+        last_run_at=row["last_run_at"],
+        next_run_at=row["next_run_at"],
+        last_scan_id=row["last_scan_id"],
+        last_error=row["last_error"],
+        created_at=str(row["created_at"]),
+        updated_at=str(row["updated_at"]),
     )
 
 
@@ -693,6 +734,120 @@ class HistoryRepository:
         return [_history_row(r) for r in rows]
 
 
+class ScheduleRepository:
+    """CRUD for recurring scan schedules.
+
+    Implements the store interface consumed by
+    :class:`core.scheduling.ScheduleRunner`.
+    """
+
+    def __init__(self, db: Database) -> None:
+        self._db = db
+
+    async def create(
+        self,
+        target: str,
+        *,
+        mode: str = "quick",
+        interval_seconds: int | None = None,
+        cron: str | None = None,
+        enabled: bool = True,
+        next_run_at: str | None = None,
+    ) -> ScheduleRecord:
+        """Insert a schedule row and return it."""
+        now = utc_now()
+        cursor = await self._db.execute(
+            "INSERT INTO schedules (target, mode, interval_seconds, cron, enabled,"
+            " status, next_run_at, created_at, updated_at)"
+            " VALUES (?, ?, ?, ?, ?, 'idle', ?, ?, ?)",
+            (target, mode, interval_seconds, cron, int(enabled), next_run_at, now, now),
+        )
+        record = await self.get(_cursor_id(cursor))
+        if record is None:
+            raise DatabaseError("schedule insert did not produce a row")
+        return record
+
+    async def get(self, schedule_id: int) -> ScheduleRecord | None:
+        """Fetch one schedule by id."""
+        row = await self._db.fetchone(
+            "SELECT * FROM schedules WHERE id = ?", (schedule_id,)
+        )
+        return _schedule_row(row) if row is not None else None
+
+    async def due(self, now: str) -> list[ScheduleRecord]:
+        """Enabled, idle schedules whose ``next_run_at`` has arrived."""
+        rows = await self._db.fetchall(
+            "SELECT * FROM schedules WHERE enabled = 1 AND status != 'running'"
+            " AND (next_run_at IS NULL OR next_run_at <= ?) ORDER BY next_run_at",
+            (now,),
+        )
+        return [_schedule_row(r) for r in rows]
+
+    async def set_enabled(self, schedule_id: int, enabled: bool) -> None:
+        """Toggle a schedule (raises when it is unknown)."""
+        cursor = await self._db.execute(
+            "UPDATE schedules SET enabled = ?, updated_at = ? WHERE id = ?",
+            (int(enabled), utc_now(), schedule_id),
+        )
+        if cursor.rowcount == 0:
+            raise DatabaseError(f"unknown schedule: {schedule_id}")
+
+    async def mark_running(self, schedule_id: int, started_at: str) -> None:
+        """Flag a schedule as running (overlap prevention across processes)."""
+        await self._db.execute(
+            "UPDATE schedules SET status = 'running', last_run_at = ?,"
+            " updated_at = ? WHERE id = ?",
+            (started_at, utc_now(), schedule_id),
+        )
+
+    async def mark_finished(
+        self,
+        schedule_id: int,
+        *,
+        status: str = "idle",
+        next_run_at: str | None = None,
+        scan_id: int | None = None,
+        error: str | None = None,
+    ) -> None:
+        """Clear the running flag and store the next run time/outcome."""
+        await self._db.execute(
+            "UPDATE schedules SET status = ?, next_run_at = ?, last_scan_id = ?,"
+            " last_error = ?, updated_at = ? WHERE id = ?",
+            (status, next_run_at, scan_id, error, utc_now(), schedule_id),
+        )
+
+    async def reset_running(self) -> int:
+        """Reset schedules stranded in ``running`` (interrupted) to ``idle``.
+
+        Returns how many were recovered so the caller can re-queue them.
+        """
+        cursor = await self._db.execute(
+            "UPDATE schedules SET status = 'idle', last_error ="
+            " COALESCE(last_error, 'interrupted'), updated_at = ?"
+            " WHERE status = 'running'",
+            (utc_now(),),
+        )
+        return cursor.rowcount
+
+    async def delete(self, schedule_id: int) -> bool:
+        """Remove a schedule; returns whether a row existed."""
+        cursor = await self._db.execute(
+            "DELETE FROM schedules WHERE id = ?", (schedule_id,)
+        )
+        return cursor.rowcount > 0
+
+    async def list(self, *, enabled: bool | None = None) -> list[ScheduleRecord]:
+        """All schedules ordered by id, optionally filtered by enabled flag."""
+        sql = "SELECT * FROM schedules"
+        params: list[Any] = []
+        if enabled is not None:
+            sql += " WHERE enabled = ?"
+            params.append(int(enabled))
+        sql += " ORDER BY id"
+        rows = await self._db.fetchall(sql, params)
+        return [_schedule_row(r) for r in rows]
+
+
 class SettingRepository:
     """DB-backed runtime settings (JSON values)."""
 
@@ -741,4 +896,5 @@ class Repositories:
         self.api_keys = ApiKeyRepository(db)
         self.logs = LogRepository(db)
         self.history = HistoryRepository(db)
+        self.schedules = ScheduleRepository(db)
         self.settings = SettingRepository(db)

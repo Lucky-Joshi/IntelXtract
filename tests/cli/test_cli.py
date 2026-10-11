@@ -60,6 +60,11 @@ def _write_plugin(root: Path, name: str, source: str) -> Path:
     return directory
 
 
+def _flat(text: str) -> str:
+    """Collapse console line-wrapping so substring assertions are width-safe."""
+    return " ".join(text.split())
+
+
 def _report_count(cli_env: Path) -> int:
     con = sqlite3.connect(cli_env / "app.db")
     try:
@@ -158,7 +163,7 @@ def test_report_json_roundtrip(cli_env: Path) -> None:
     assert payload["scan"]["uuid"]
     assert payload["target"] == {"value": "example.com", "type": "domain"}
     assert payload["findings"] == []
-    assert "format: json" in result.stdout
+    assert "format: json" in _flat(result.stdout)
 
 
 @pytest.mark.parametrize(
@@ -182,7 +187,7 @@ def test_report_formats(
     result = runner.invoke(app, ["report", "1", "--format", format_, "--out", str(out)])
     assert result.exit_code == 0
     assert expected_marker in out.read_text(encoding="utf-8")
-    assert f"format: {format_}" in result.stdout
+    assert f"format: {format_}" in _flat(result.stdout)
     assert _report_count(cli_env) >= 1
 
 
@@ -197,7 +202,7 @@ def test_report_pdf_falls_back_without_weasyprint(
     assert report_path.exists()
     assert "<!doctype html>" in report_path.read_text(encoding="utf-8")
     assert "WeasyPrint" in result.stderr
-    assert "output: html" in result.stdout
+    assert "output: html" in _flat(result.stdout)
 
 
 def test_report_unknown_scan_fails(cli_env: Path) -> None:
@@ -302,6 +307,117 @@ def test_plugin_enable_disable_info(cli_env: Path) -> None:
     unknown = runner.invoke(app, ["plugin", "enable", "ghost"])
     assert unknown.exit_code == 1
     assert "unknown plugin" in unknown.stderr
+
+
+# --- schedule ----------------------------------------------------------------
+
+
+def _make_due(cli_env: Path, schedule_id: int = 1) -> None:
+    con = sqlite3.connect(cli_env / "app.db")
+    try:
+        con.execute(
+            "UPDATE schedules SET next_run_at = ? WHERE id = ?",
+            ("2000-01-01T00:00:00+00:00", schedule_id),
+        )
+        con.commit()
+    finally:
+        con.close()
+
+
+_COUNT_QUERIES = {
+    "scans": "SELECT COUNT(*) FROM scans",
+    "history": "SELECT COUNT(*) FROM history",
+    "schedules": "SELECT COUNT(*) FROM schedules",
+}
+
+
+def _count(cli_env: Path, table: str) -> int:
+    con = sqlite3.connect(cli_env / "app.db")
+    try:
+        row = con.execute(_COUNT_QUERIES[table]).fetchone()
+    finally:
+        con.close()
+    return int(row[0] or 0)
+
+
+def _rows(cli_env: Path, query: str) -> list[tuple[Any, ...]]:
+    con = sqlite3.connect(cli_env / "app.db")
+    try:
+        return con.execute(query).fetchall()
+    finally:
+        con.close()
+
+
+def test_schedule_add_list_remove(cli_env: Path) -> None:
+    added = runner.invoke(app, ["schedule", "add", "example.com", "--every", "3600"])
+    assert added.exit_code == 0
+    assert "example.com" in added.stdout
+    assert "3600s" in added.stdout
+    assert _rows(cli_env, "SELECT target FROM schedules") == [("example.com",)]
+
+    listed = runner.invoke(app, ["schedule", "list"])
+    assert listed.exit_code == 0
+    assert "1 schedule(s)" in listed.stdout
+
+    removed = runner.invoke(app, ["schedule", "remove", "1"])
+    assert removed.exit_code == 0
+    empty = runner.invoke(app, ["schedule", "list"])
+    assert "no schedules found" in empty.stdout
+    assert _count(cli_env, "schedules") == 0
+
+
+def test_schedule_add_requires_cadence(cli_env: Path) -> None:
+    result = runner.invoke(app, ["schedule", "add", "example.com"])
+    assert result.exit_code == 1
+    assert "every or --cron" in result.stderr
+
+
+def test_schedule_add_rejects_bad_input(cli_env: Path) -> None:
+    bad_cron = runner.invoke(app, ["schedule", "add", "example.com", "--cron", "nope"])
+    assert bad_cron.exit_code == 1
+    bad_mode = runner.invoke(
+        app, ["schedule", "add", "example.com", "--every", "60", "--mode", "wat"]
+    )
+    assert bad_mode.exit_code == 1
+    assert "unknown mode" in bad_mode.stderr
+
+
+def test_schedule_enable_disable(cli_env: Path) -> None:
+    runner.invoke(
+        app, ["schedule", "add", "example.com", "--every", "60", "--disabled"]
+    )
+    disabled = runner.invoke(app, ["schedule", "list"])
+    assert "no" in disabled.stdout
+
+    enable = runner.invoke(app, ["schedule", "enable", "1"])
+    assert enable.exit_code == 0
+    assert "enabled" in enable.stdout
+
+    disable = runner.invoke(app, ["schedule", "disable", "1"])
+    assert disable.exit_code == 0
+    assert "disabled" in disable.stdout
+
+    unknown = runner.invoke(app, ["schedule", "disable", "999"])
+    assert unknown.exit_code == 1
+    assert "unknown schedule" in unknown.stderr
+
+
+def test_schedule_run_once_executes_due(cli_env: Path) -> None:
+    runner.invoke(app, ["schedule", "add", "example.com", "--every", "60"])
+    _make_due(cli_env)
+
+    result = runner.invoke(app, ["schedule", "run", "--once"])
+    assert result.exit_code == 0
+    assert _count(cli_env, "scans") == 1
+    assert _rows(cli_env, "SELECT value FROM targets") == [("example.com",)]
+    assert _count(cli_env, "history") == 1
+
+
+def test_schedule_run_once_no_due(cli_env: Path) -> None:
+    runner.invoke(app, ["schedule", "add", "example.com", "--every", "3600"])
+    result = runner.invoke(app, ["schedule", "run", "--once"])
+    assert result.exit_code == 0
+    assert "no schedules due" in result.stdout
 
 
 # --- doctor ------------------------------------------------------------------
