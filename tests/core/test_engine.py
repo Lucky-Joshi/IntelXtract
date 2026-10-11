@@ -226,3 +226,53 @@ async def test_on_module_done_skipped_modules_not_reported(
     assert [event.module for event in events] == ["ok"]
     skipped = next(r for r in result.runs if r.module == "ip_only")
     assert skipped.status is ModuleStatus.SKIPPED
+
+
+async def test_engine_provides_per_scan_offload_pool(tmp_path: Path) -> None:
+    import threading
+
+    seen: dict[str, Any] = {}
+    loop_thread = threading.get_ident()
+
+    class OffloadModule:
+        name = "offloader"
+        target_types = (TargetType.DOMAIN,)
+
+        def validate(self, target: str) -> bool:
+            return True
+
+        async def run(self, target: str, ctx: ModuleContext) -> Any:
+            seen["offload"] = ctx.offload
+            seen["thread"] = await ctx.to_thread(threading.get_ident)
+            seen["value"] = await ctx.to_thread(lambda: 7)
+            return {}
+
+    engine = _engine(tmp_path, modules=[OffloadModule()])
+    await engine.scan("example.com")
+    assert seen["offload"] is not None
+    assert seen["value"] == 7
+    assert seen["thread"] != loop_thread
+
+
+async def test_module_context_cached_memoizes(tmp_path: Path) -> None:
+    import logging
+
+    cfg = Config(tmp_path / "settings.json", use_env=False)
+    ctx = ModuleContext(
+        config=cfg,
+        cache=AsyncTTLCache(max_size=8, default_ttl=60.0),
+        logger=logging.getLogger("test"),
+        scan_id="cached000001",
+    )
+    calls = 0
+
+    async def factory() -> dict[str, int]:
+        nonlocal calls
+        calls += 1
+        return {"n": calls}
+
+    first = await ctx.cached("k", factory)
+    second = await ctx.cached("k", factory)
+    assert first == {"n": 1}
+    assert second == {"n": 1}
+    assert calls == 1

@@ -73,7 +73,7 @@ sub-phases that are small enough to implement and verify independently.
 | 22    | Case Management            | H         | M    | [x]    |
 | 23    | AI Assistant (optional)    | H         | S    | [x]    |
 | 24    | Settings                   | I         | M    | [x]    |
-| 25    | Performance                | I         | M    | [ ]    |
+| 25    | Performance                | I         | M    | [x]    |
 | 26    | Testing                    | I         | L    | [ ]    |
 | 27    | Documentation              | I         | M    | [ ]    |
 | 28    | Packaging                  | I         | M    | [ ]    |
@@ -675,17 +675,17 @@ vault accessor; precedence documented and tested.
 
 **Objective:** Make scans fast, polite, and resilient.
 
-- [ ] S25.1 Connection pooling — shared `aiohttp.TCPConnector`, keep-alive,
+- [x] S25.1 Connection pooling — shared `aiohttp.TCPConnector`, keep-alive,
       per-host limits
-- [ ] S25.2 Cache integration — HTTP response caching (ETag/If-None-Match
+- [x] S25.2 Cache integration — HTTP response caching (ETag/If-None-Match
       where supported), module-level result caching with TTL
-- [ ] S25.3 Retry logic — exponential backoff + jitter, bounded attempts,
+- [x] S25.3 Retry logic — exponential backoff + jitter, bounded attempts,
       retry only idempotent/transient failures
-- [ ] S25.4 Offload blocking libs — WHOIS/DNS/metadata calls via
+- [x] S25.4 Offload blocking libs — WHOIS/DNS/metadata calls via
       `asyncio.to_thread` with a bounded thread pool
-- [ ] S25.5 Concurrency policy — global + per-host semaphores, rate-limit
+- [x] S25.5 Concurrency policy — global + per-host semaphores, rate-limit
       tokens per API provider
-- [ ] S25.6 Benchmarks — `scripts/bench.py` measuring scans/sec and cache
+- [x] S25.6 Benchmarks — `scripts/bench.py` measuring scans/sec and cache
       hit rates; baseline numbers recorded in `docs/`
 
 **Done criteria:** No blocking call on the event loop (verified by a slow-

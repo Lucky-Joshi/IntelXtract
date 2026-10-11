@@ -39,7 +39,7 @@ class UsernameModule(BaseModule):
 
     async def run(self, target: str, ctx: ModuleContext) -> ModuleResult:
         handle = target.strip().lstrip("@")
-        sites = load_sites(ctx.config)
+        sites = await ctx.to_thread(load_sites, ctx.config)
         concurrency = int(ctx.config.get("username.concurrency", 8))
         interval = float(ctx.config.get("username.per_site_interval", 1.0))
 

@@ -7,11 +7,12 @@ here (``classifier``, ``result_sink``, registered modules).
 
 from __future__ import annotations
 
+import asyncio
 import time
 import uuid
 from collections.abc import Awaitable, Callable, Iterator, Sequence
 from dataclasses import dataclass, field, replace
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Protocol, TypeVar, cast, runtime_checkable
 
 from core.cache import AsyncTTLCache
 from core.config import Config
@@ -22,9 +23,12 @@ from core.http_client import HttpClient
 from core.input_engine import classify, select_modules
 from core.logger import get_logger, scan_context
 from core.models import ModuleResult
+from core.offload import OffloadPool
 from core.risk import assess_risk
 from core.scheduler import Task, TaskScheduler
 from core.worker_pool import WorkerPool
+
+T = TypeVar("T")
 
 _log = get_logger(__name__)
 
@@ -87,6 +91,7 @@ class ModuleContext:
     target_type: TargetType = TargetType.UNKNOWN
     extras: dict[str, Any] = field(default_factory=dict)
     http: HttpClient | None = None
+    offload: OffloadPool | None = None
 
     def api_key(self, name: str) -> str | None:
         """Return a configured API key (``api_keys.<name>``) or ``None``."""
@@ -96,6 +101,30 @@ class ModuleContext:
     def get(self, key: str, default: Any = None) -> Any:
         """Read a per-scan extra from :attr:`extras`."""
         return self.extras.get(key, default)
+
+    async def to_thread(
+        self, func: Callable[..., T], /, *args: Any, **kwargs: Any
+    ) -> T:
+        """Run a blocking callable off the event loop on the per-scan pool."""
+        if self.offload is not None:
+            return await self.offload.run(func, *args, **kwargs)
+        return await asyncio.to_thread(func, *args, **kwargs)
+
+    async def cached(
+        self,
+        key: str,
+        factory: Callable[[], Awaitable[T]],
+        *,
+        ttl: float | None = None,
+    ) -> T:
+        """Return ``key`` from the cache, else run ``factory`` and memoize it."""
+        sentinel: Any = object()
+        hit = await self.cache.get(key, sentinel)
+        if hit is not sentinel:
+            return cast(T, hit)
+        value = await factory()
+        await self.cache.set(key, value, ttl)
+        return value
 
 
 @dataclass(slots=True)
@@ -272,7 +301,11 @@ class ScanEngine:
             )
             planned, skipped = self._plan(cleaned, target_type, scan_mode, module_names)
             scheduler = TaskScheduler()
-            http = HttpClient(config=self._config)
+            offload_workers = int(self._config.get("performance.offload_workers", 4))
+            offload_pool = (
+                OffloadPool(max(offload_workers, 1)) if offload_workers > 0 else None
+            )
+            http = HttpClient(config=self._config, cache=self._cache)
             ctx = ModuleContext(
                 config=self._config,
                 cache=self._cache,
@@ -280,6 +313,7 @@ class ScanEngine:
                 scan_id=scan_id,
                 target_type=target_type,
                 http=http,
+                offload=offload_pool,
             )
             try:
                 for module in planned:
@@ -302,6 +336,8 @@ class ScanEngine:
                 raise ScanError(f"scan {scan_id} aborted: {exc}") from exc
             finally:
                 await http.aclose()
+                if offload_pool is not None:
+                    offload_pool.shutdown(wait=False)
             result = self._build_result(
                 scan_id,
                 cleaned,

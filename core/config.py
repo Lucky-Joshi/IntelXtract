@@ -65,6 +65,17 @@ DEFAULTS: dict[str, Any] = {
         "retries": 2,
         "proxy": "",
         "rate_limit": 0.0,
+        "rate_limit_per_host": 0.0,
+        "backoff_base": 0.5,
+        "backoff_max": 30.0,
+        "pool_limit": 100,
+        "pool_limit_per_host": 8,
+        "max_concurrency": 16,
+        "max_per_host": 4,
+        "http_cache": True,
+    },
+    "performance": {
+        "offload_workers": 4,
     },
     "http": {
         "timeout": 30.0,

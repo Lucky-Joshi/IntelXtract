@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import threading
 from pathlib import Path
+from typing import Any
+
+import pytest
 
 from core.engine import ModuleContext
 from fakes import make_module_config, make_module_context
+from modules.metadata import collector
 from modules.metadata.collector import MetadataModule
 
 FIXTURE_DIR = Path(__file__).resolve().parent.parent / "fixtures" / "metadata"
@@ -85,3 +90,21 @@ async def test_validate_rejects_missing_files(tmp_path: Path) -> None:
 
     assert module.validate(str(FIXTURE_DIR / "sample.pdf")) is True
     assert module.validate(str(tmp_path / "missing.pdf")) is False
+
+
+async def test_extraction_runs_off_event_loop_thread(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    loop_thread = threading.get_ident()
+    seen: dict[str, int] = {}
+    real = collector.extract_pdf
+
+    def spy(path: Path) -> dict[str, Any]:
+        seen["thread"] = threading.get_ident()
+        return real(path)
+
+    monkeypatch.setattr(collector, "extract_pdf", spy)
+    result = await MetadataModule().run(str(FIXTURE_DIR / "sample.pdf"), _ctx(tmp_path))
+
+    assert result.data["kind"] == "pdf"
+    assert seen["thread"] != loop_thread

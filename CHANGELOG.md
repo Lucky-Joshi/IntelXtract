@@ -1,4 +1,16 @@
 
+### Phase 25 — Performance
+
+- `core/http_client.py` — one lazily-created keep-alive `aiohttp.TCPConnector` per client with total/per-host connection caps and a DNS cache (`network.pool_limit`, `network.pool_limit_per_host`), closed on `aclose()` (S25.1).
+- `core/http_client.py` — conditional-request caching: GET responses that carry `ETag`/`Last-Modified` are stored in the engine's shared `AsyncTTLCache` and revalidated with `If-None-Match`/`If-Modified-Since`, serving the cached body on `304` for `fetch`/`request`/`get_json`; `network.http_cache` toggles it (S25.2).
+- `core/engine.py` — `ScanEngine` passes its shared cache into the per-scan `HttpClient`, and `ModuleContext.cached()` provides get-or-compute module result caching with TTL (S25.2).
+- `core/http_client.py` — retry backoff is now exponential with equal jitter capped at `network.backoff_max` (replacing `0.5 * (attempt + 1)`); only idempotent methods (GET/HEAD/OPTIONS/PUT/DELETE) retry on 408/429/5xx while transient network errors still retry within `network.retries` (S25.3).
+- `core/offload.py` (new) — `OffloadPool` (bounded `ThreadPoolExecutor`), a process-wide `offload()` helper, and `configure_offload`/`shutdown_offload`; `performance.offload_workers` bounds the per-scan pool (S25.4).
+- Metadata extraction (PDF/EXIF/OOXML) and the username site-registry load now run off the event loop via `ModuleContext.to_thread()`; a slow-task probe test asserts the loop stays responsive (S25.4).
+- `core/http_client.py` — global (`network.max_concurrency`) and per-host (`network.max_per_host`) in-flight semaphores plus `network.rate_limit_per_host` per-provider pacing beside the existing global pacing (S25.5).
+- `scripts/bench.py` (new) — offline benchmarks for cache throughput, scan throughput, and offload throughput (`--quick`/`--json`); baseline numbers recorded in `docs/performance.md` (S25.6).
+- Docs/tests: `docs/performance.md`, new `network.*`/`performance.*` defaults and `.env.example` entries; tests for offload responsiveness/bounding, connector build, backoff bounds/growth/idempotency gating, concurrency caps, per-host pacing, `304` cache serving, engine offload pool + `ctx.cached`, module off-thread extraction, and benchmark smoke tests.
+
 ### Phase 24 — Settings
 
 - `core/vault.py` — new Fernet-backed API-key vault (S24.1). Key material resolves `INTELXTRACT_VAULT_KEY` → OS `keyring` (optional) → a `0600` key file at `vault.key_path`; `store_key`/`get_key`/`delete_key`/`list_stored` keep ciphertext + masked hint in the existing `api_keys` table, and `hydrate_api_keys` decrypts stored secrets into config (env/`.env` always wins) while migrating any legacy plaintext keys out of `settings.json`.

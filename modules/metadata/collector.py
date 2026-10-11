@@ -47,11 +47,14 @@ class MetadataModule(BaseModule):
 
         try:
             if extension == ".pdf":
-                record, kind = extract_pdf(path), "pdf"
+                record = await ctx.to_thread(extract_pdf, path)
+                kind = "pdf"
             elif extension in _IMAGE_EXTENSIONS:
-                record, kind = extract_image(path), "image"
+                record = await ctx.to_thread(extract_image, path)
+                kind = "image"
             elif extension in _OFFICE_EXTENSIONS:
-                record, kind = extract_ooxml(path), "office"
+                record = await ctx.to_thread(extract_ooxml, path)
+                kind = "office"
             else:
                 return self._unsupported(path)
         except (PdfMetadataError, ImageMetadataError, OfficeMetadataError) as exc:

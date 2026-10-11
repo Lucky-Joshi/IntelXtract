@@ -108,6 +108,7 @@ IntelXtract/
 | [`docs/architecture.md`](docs/architecture.md) | System architecture |
 | [`docs/Database_Schema.md`](docs/Database_Schema.md) | Database design |
 | [`docs/settings.md`](docs/settings.md) | Configuration precedence & secret vault |
+| [`docs/performance.md`](docs/performance.md) | Performance work & benchmarks |
 | [`docs/brand/BRAND.md`](docs/brand/BRAND.md) | Visual identity & tokens |
 | [`docs/coding_standards.md`](docs/coding_standards.md) | Code rules |
 | [`docs/git_workflow.md`](docs/git_workflow.md) | Branch/commit/phase-gate workflow |
