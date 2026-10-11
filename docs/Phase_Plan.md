@@ -75,7 +75,7 @@ sub-phases that are small enough to implement and verify independently.
 | 24    | Settings                   | I         | M    | [x]    |
 | 25    | Performance                | I         | M    | [x]    |
 | 26    | Testing                    | I         | L    | [x]    |
-| 27    | Documentation              | I         | M    | [ ]    |
+| 27    | Documentation              | I         | M    | [x]    |
 | 28    | Packaging                  | I         | M    | [ ]    |
 | 29    | Version 1.0 Release        | I         | M    | [ ]    |
 
@@ -723,17 +723,17 @@ runs offline in < 2 minutes.
 
 **Objective:** Complete user and developer documentation.
 
-- [ ] S27.1 Architecture docs — reconcile `docs/architecture.md`,
+- [x] S27.1 Architecture docs — reconcile `docs/architecture.md`,
       `internal_architecture.md`, `Scan_Engine_Workflow.md` with the
       implemented system (single source of truth)
-- [ ] S27.2 Installation & user guide — setup, CLI cookbook, GUI walkthrough,
+- [x] S27.2 Installation & user guide — setup, CLI cookbook, GUI walkthrough,
       scan modes, report formats (`docs/user_guide.md`)
-- [ ] S27.3 Developer guide — adding a module, running tests, code
+- [x] S27.3 Developer guide — adding a module, running tests, code
       conventions link (`docs/developer_guide.md`)
-- [ ] S27.4 Plugin SDK doc — finalize `docs/plugin_sdk.md` with full example
-- [ ] S27.5 FAQ & troubleshooting — common errors, network/proxy issues,
+- [x] S27.4 Plugin SDK doc — finalize `docs/plugin_sdk.md` with full example
+- [x] S27.5 FAQ & troubleshooting — common errors, network/proxy issues,
       key setup (`docs/faq.md`, `docs/troubleshooting.md`)
-- [ ] S27.6 README polish — screenshots, quickstart, badges, feature matrix
+- [x] S27.6 README polish — screenshots, quickstart, badges, feature matrix
 
 **Done criteria:** A new user can install, scan, and export a report using
 only the docs; a developer can add a module without reading engine source.

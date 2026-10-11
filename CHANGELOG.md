@@ -1,4 +1,14 @@
 
+### Phase 27 — Documentation
+
+- Architecture reconciled: `docs/architecture.md` rewritten as single source of truth (supersedes `internal_architecture.md` and `Scan_Engine_Workflow.md`) with complete system diagram, component descriptions, data flow, and design principles (S27.1).
+- `docs/user_guide.md` (new) — complete installation guide, CLI cookbook with all commands/examples, GUI walkthrough with 13-page breakdown, scan mode deep dive, module reference table, report format specs (S27.2).
+- `docs/developer_guide.md` (new) — module authoring guide (6-step process with code template), test conventions (fixtures, patterns, GUI/integration/perf), code conventions (typing, async, errors, naming, security), phase-gate workflow, common commands (S27.3).
+- `docs/plugin_sdk.md` finalized with verbatim `manifest.json` and `plugin.py` for the three reference plugins (`Wayback`, `VirusTotal`, `_template`), context API table, testing patterns, versioning, best practices (S27.4).
+- `docs/faq.md` (new) — 30+ Q&A covering general, install, config, scanning, reports, schedules, plugins, GUI, development (S27.5).
+- `docs/troubleshooting.md` (new) — diagnostic sections for database, vault, modules, network, GUI, reports, schedules, performance, test failures with causes and fixes (S27.5).
+- `README.md` polished: quickstart, badges (Python, License, Phase, Tests, Coverage), full feature matrix table with status checkmarks, updated architecture diagram, documentation index (S27.6).
+
 ### Phase 26 — Testing
 
 - Coverage tooling: `pytest-cov` + `pytest-qt` added to `requirements-dev.txt`; `pyproject.toml` gains `[tool.coverage.run]` (branch coverage over `core`/`modules`/`reports`/`plugins`) and `[tool.coverage.report]` (`fail_under = 80`, missing lines, standard exclusions); CI now runs `pytest -m "not integration" --cov --cov-report=term --cov-report=html:htmlcov` so the coverage floor is enforced on every push (S26.1/S26.8).
