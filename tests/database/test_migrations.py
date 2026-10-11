@@ -26,6 +26,9 @@ EXPECTED_TABLES = {
     "history",
     "settings",
     "schedules",
+    "cases",
+    "case_notes",
+    "case_evidence",
     "schema_version",
 }
 
@@ -40,7 +43,7 @@ async def test_migrate_creates_all_schema_tables() -> None:
     await db.connect()
     try:
         version = await migrate(db)
-        assert version == 3
+        assert version == 4
         assert EXPECTED_TABLES.issubset(await _table_names(db))
     finally:
         await db.close()
@@ -52,9 +55,9 @@ async def test_migrate_is_idempotent() -> None:
     try:
         first = await migrate(db)
         second = await migrate(db)
-        assert first == second == 3
+        assert first == second == 4
         rows = await db.fetchall("SELECT version FROM schema_version")
-        assert [int(r["version"]) for r in rows] == [1, 2, 3]
+        assert [int(r["version"]) for r in rows] == [1, 2, 3, 4]
     finally:
         await db.close()
 
@@ -78,6 +81,7 @@ async def test_applied_migrations_records_name() -> None:
             (1, "initial schema"),
             (2, "finding normalized fields"),
             (3, "recurring schedules"),
+            (4, "case management"),
         ]
     finally:
         await db.close()
@@ -95,14 +99,14 @@ async def test_apply_runs_pending_only_in_order() -> None:
     await db.connect()
     try:
         extra = Migration(
-            version=4, name="extra", sql="CREATE TABLE extra (id INTEGER)"
+            version=5, name="extra", sql="CREATE TABLE extra (id INTEGER)"
         )
         final = await apply(db, (*MIGRATIONS, extra))
-        assert final == 4
+        assert final == 5
         assert "extra" in await _table_names(db)
         again = await apply(db, (*MIGRATIONS, extra))
-        assert again == 4
-        assert len(await _applied(db)) == 4
+        assert again == 5
+        assert len(await _applied(db)) == 5
     finally:
         await db.close()
 
@@ -111,10 +115,10 @@ async def test_bad_migration_raises_and_is_not_recorded() -> None:
     db = Database(":memory:")
     await db.connect()
     try:
-        bad = Migration(version=4, name="bad", sql="CREATE TABLE (;")
+        bad = Migration(version=5, name="bad", sql="CREATE TABLE (;")
         with pytest.raises(MigrationError, match="bad"):
             await apply(db, (*MIGRATIONS, bad))
-        assert await current_version(db) == 3
+        assert await current_version(db) == 4
         assert "bad" not in {name for _, name in await _applied(db)}
     finally:
         await db.close()
@@ -145,7 +149,7 @@ async def test_migrate_on_file_db(tmp_path: Path) -> None:
     db = Database(path)
     await db.connect()
     try:
-        assert await migrate(db) == 3
+        assert await migrate(db) == 4
     finally:
         await db.close()
     assert path.exists()

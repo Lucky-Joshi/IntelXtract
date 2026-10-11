@@ -50,8 +50,12 @@ from core.scheduling import (
 )
 from database.connection import Database, open_database
 from database.migrations import migrate
-from database.persistence import make_result_sink, record_scan_change
-from database.repositories import Repositories, ScanRecord
+from database.persistence import (
+    collect_case_payload,
+    make_result_sink,
+    record_scan_change,
+)
+from database.repositories import CaseRecord, Repositories, ScanRecord
 from modules.registry import ModuleRegistry
 from reports import build_report, export_report
 
@@ -68,10 +72,12 @@ history_app = typer.Typer(help="Inspect past scans.", no_args_is_help=False)
 config_app = typer.Typer(help="Get/set configuration values.", no_args_is_help=True)
 plugin_app = typer.Typer(help="Manage plugins.", no_args_is_help=True)
 schedule_app = typer.Typer(help="Manage recurring scans.", no_args_is_help=True)
+case_app = typer.Typer(help="Group scans into investigations.", no_args_is_help=True)
 app.add_typer(history_app, name="history")
 app.add_typer(config_app, name="config")
 app.add_typer(plugin_app, name="plugin")
 app.add_typer(schedule_app, name="schedule")
+app.add_typer(case_app, name="case")
 
 StatusColor = {"ok": "green", "warn": "yellow", "fail": "red"}
 ScanStatusColor = {
@@ -196,6 +202,12 @@ def _default_report_path(cfg: Config, scan_id: int, extension: str) -> Path:
     """Default export path for a scan report: ``exports/report-<id>.<ext>``."""
     exports = Path(str(cfg.get("paths.exports_dir", "exports"))).expanduser()
     return exports / f"report-{scan_id}.{extension}"
+
+
+def _default_case_path(cfg: Config, case_id: int, extension: str) -> Path:
+    """Default export path for a case report: ``exports/case-<id>.<ext>``."""
+    exports = Path(str(cfg.get("paths.exports_dir", "exports"))).expanduser()
+    return exports / f"case-{case_id}.{extension}"
 
 
 def _write_report_bytes(out_path: Path, data: bytes) -> None:
@@ -1019,6 +1031,258 @@ async def _schedule_run(
             await runner.run_forever(recover=False)
         except (KeyboardInterrupt, asyncio.CancelledError):
             runner.stop()
+    finally:
+        await db.close()
+
+
+# ---------------------------------------------------------------------------
+# case
+# ---------------------------------------------------------------------------
+
+
+async def _resolve_case(repos: Repositories, ref: str) -> CaseRecord:
+    """Resolve a case reference (id or name), failing when unknown."""
+    case = await repos.cases.resolve(ref)
+    if case is None:
+        _fail(f"case not found: {ref}")
+    return case
+
+
+@case_app.command("create")
+def case_create(
+    name: str = typer.Argument(..., help="Case name (unique)."),
+    description: str = typer.Option("", "--description", "-d", help="Case summary."),
+    status: str = typer.Option("open", "--status", help="Case status (open/closed)."),
+    db: str | None = typer.Option(None, "--db", help="Override the database path."),
+) -> None:
+    """Create an investigation case."""
+    asyncio.run(_case_create(name, description, status, db))
+
+
+async def _case_create(
+    name: str, description: str, status: str, db_override: str | None
+) -> None:
+    cfg = _load_config(db_override)
+    db = await _open_db(cfg)
+    try:
+        try:
+            record = await Repositories(db).cases.create(
+                name, description=description, status=status
+            )
+        except DatabaseError as exc:
+            _fail(str(exc))
+        console.print(f"case [bold]#{record.id}[/bold] {record.name} created")
+    finally:
+        await db.close()
+
+
+@case_app.command("list")
+def case_list(
+    status: str | None = typer.Option(None, "--status", help="Filter by status."),
+    db: str | None = typer.Option(None, "--db", help="Override the database path."),
+) -> None:
+    """List investigation cases."""
+    asyncio.run(_case_list(status, db))
+
+
+async def _case_list(status: str | None, db_override: str | None) -> None:
+    cfg = _load_config(db_override)
+    db = await _open_db(cfg)
+    try:
+        repos = Repositories(db)
+        cases = await repos.cases.list(status=status)
+        if not cases:
+            console.print("no cases found")
+            return
+        table = Table("id", "name", "status", "notes", "evidence", "created")
+        for case in cases:
+            notes = await repos.cases.list_notes(case.id)
+            evidence = await repos.cases.list_evidence(case.id)
+            table.add_row(
+                str(case.id),
+                case.name,
+                case.status,
+                str(len(notes)),
+                str(len(evidence)),
+                case.created_at,
+            )
+        console.print(table)
+        console.print(f"{len(cases)} case(s)")
+    finally:
+        await db.close()
+
+
+@case_app.command("show")
+def case_show(
+    ref: str = typer.Argument(..., help="Case id or name."),
+    db: str | None = typer.Option(None, "--db", help="Override the database path."),
+) -> None:
+    """Show a case with its notes, evidence, and combined findings."""
+    asyncio.run(_case_show(ref, db))
+
+
+async def _case_show(ref: str, db_override: str | None) -> None:
+    cfg = _load_config(db_override)
+    db = await _open_db(cfg)
+    try:
+        repos = Repositories(db)
+        case = await _resolve_case(repos, ref)
+        payload = await collect_case_payload(repos, case)
+        console.print(
+            f"[bold]case[/bold] #{case.id}  {case.name}  "
+            f"status={case.status}  created={case.created_at}"
+        )
+        if case.description:
+            console.print(f"description: {case.description}")
+
+        notes = await repos.cases.list_notes(case.id)
+        notes_table = Table("id", "created", "note")
+        for note in notes:
+            notes_table.add_row(str(note.id), note.created_at, note.body)
+        console.print(notes_table)
+
+        evidence_table = Table("id", "kind", "scan", "finding", "label")
+        for item in payload["evidence"]:
+            evidence_table.add_row(
+                str(item.id),
+                item.kind,
+                str(item.scan_id or "-"),
+                str(item.finding_id or "-"),
+                item.label or "-",
+            )
+        console.print(evidence_table)
+
+        findings = payload["findings"]
+        findings_table = Table("#", "module", "severity", "title")
+        for finding in findings:
+            findings_table.add_row(
+                str(finding.get("id", "-")),
+                str(finding.get("module", "-")),
+                str(finding.get("severity") or "-"),
+                str(finding.get("title") or "-"),
+            )
+        console.print(findings_table)
+        console.print(
+            f"{len(notes)} note(s), {len(payload['evidence'])} evidence row(s), "
+            f"{len(findings)} combined finding(s)"
+        )
+    finally:
+        await db.close()
+
+
+@case_app.command("note")
+def case_note(
+    ref: str = typer.Argument(..., help="Case id or name."),
+    body: str = typer.Argument(..., help="Note text."),
+    db: str | None = typer.Option(None, "--db", help="Override the database path."),
+) -> None:
+    """Append a note to a case."""
+    asyncio.run(_case_note(ref, body, db))
+
+
+async def _case_note(ref: str, body: str, db_override: str | None) -> None:
+    cfg = _load_config(db_override)
+    db = await _open_db(cfg)
+    try:
+        repos = Repositories(db)
+        case = await _resolve_case(repos, ref)
+        note = await repos.cases.add_note(case.id, body)
+        console.print(f"note [bold]#{note.id}[/bold] added to case #{case.id}")
+    finally:
+        await db.close()
+
+
+@case_app.command("attach")
+def case_attach(
+    ref: str = typer.Argument(..., help="Case id or name."),
+    scan: str | None = typer.Option(None, "--scan", help="Scan id or uuid."),
+    finding: int | None = typer.Option(None, "--finding", help="Finding id."),
+    label: str = typer.Option("", "--label", help="Human label for the evidence."),
+    db: str | None = typer.Option(None, "--db", help="Override the database path."),
+) -> None:
+    """Attach a scan or finding to a case."""
+    asyncio.run(_case_attach(ref, scan, finding, label, db))
+
+
+async def _case_attach(
+    ref: str,
+    scan_ref: str | None,
+    finding_id: int | None,
+    label: str,
+    db_override: str | None,
+) -> None:
+    if scan_ref is None and finding_id is None:
+        _fail("attach requires --scan and/or --finding")
+    cfg = _load_config(db_override)
+    db = await _open_db(cfg)
+    try:
+        repos = Repositories(db)
+        case = await _resolve_case(repos, ref)
+        scan_id: int | None = None
+        if scan_ref is not None:
+            scan_record = await _resolve_scan(repos, scan_ref)
+            if scan_record is None:
+                _fail(f"scan not found: {scan_ref}")
+            scan_id = scan_record.id
+        if finding_id is not None:
+            if await repos.findings.get(finding_id) is None:
+                _fail(f"finding not found: {finding_id}")
+        evidence = await repos.cases.attach(
+            case.id,
+            scan_id=scan_id,
+            finding_id=finding_id,
+            label=label,
+        )
+        console.print(
+            f"evidence [bold]#{evidence.id}[/bold] ({evidence.kind}) "
+            f"attached to case #{case.id}"
+        )
+    finally:
+        await db.close()
+
+
+@case_app.command("export")
+def case_export(
+    ref: str = typer.Argument(..., help="Case id or name."),
+    output_format: str = typer.Option(
+        "json", "--format", "-f", help="Report format: json|html|pdf|csv|md."
+    ),
+    out: Path | None = typer.Option(None, "--out", help="Output file path."),
+    db: str | None = typer.Option(None, "--db", help="Override the database path."),
+) -> None:
+    """Export a case's combined findings as one report."""
+    asyncio.run(_case_export(ref, output_format, out, db))
+
+
+async def _case_export(
+    ref: str,
+    output_format: str,
+    out: Path | None,
+    db_override: str | None,
+) -> None:
+    cfg = _load_config(db_override)
+    db = await _open_db(cfg)
+    try:
+        repos = Repositories(db)
+        case = await _resolve_case(repos, ref)
+        payload = await collect_case_payload(repos, case)
+        model = build_report(payload["scan"], payload["target"], payload["findings"])
+        exported = await asyncio.to_thread(export_report, model, output_format)
+        if exported.warning:
+            err_console.print(f"[yellow]warning:[/yellow] {exported.warning}")
+        extension = "pdf" if exported.format == "pdf" else exported.format
+        if out is not None:
+            out_path = out
+        else:
+            out_path = await asyncio.to_thread(
+                _default_case_path, cfg, case.id, extension
+            )
+        await asyncio.to_thread(_write_report_bytes, out_path, exported.data)
+        console.print(
+            f"case report written to [bold]{out_path}[/bold]"
+            f" (format: {output_format}; output: {exported.format};"
+            f" findings: {len(payload['findings'])})"
+        )
     finally:
         await db.close()
 

@@ -25,6 +25,7 @@ from gui.context import GuiContext
 from gui.pages import (
     AboutPage,
     ApiManagerPage,
+    CasesPage,
     DashboardPage,
     DeepScanPage,
     HistoryPage,
@@ -44,6 +45,7 @@ _NAV: tuple[tuple[str, str], ...] = (
     ("results", "Results"),
     ("reports", "Reports"),
     ("history", "History"),
+    ("cases", "Cases"),
     ("schedules", "Schedules"),
     ("plugins", "Plugins"),
     ("api_manager", "API Manager"),
@@ -98,6 +100,7 @@ class MainWindow(QMainWindow):
             "results": ResultsPage,
             "reports": ReportsPage,
             "history": HistoryPage,
+            "cases": CasesPage,
             "schedules": SchedulesPage,
             "plugins": PluginsPage,
             "api_manager": ApiManagerPage,

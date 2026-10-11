@@ -12,7 +12,12 @@ from core.engine import ResultSink, ScanResult
 from core.plugin_loader import PluginRegistry
 from core.scheduling import diff_findings
 from database.connection import Database
-from database.repositories import FindingRecord, HistoryRecord, Repositories
+from database.repositories import (
+    CaseRecord,
+    FindingRecord,
+    HistoryRecord,
+    Repositories,
+)
 
 
 async def save_scan_result(db: Database, result: ScanResult) -> int:
@@ -68,6 +73,65 @@ async def record_scan_change(
     return await repos.history.add(
         target_id, "change", payload, scan_id=current_scan_id
     )
+
+
+def _finding_dict(finding: FindingRecord) -> dict[str, Any]:
+    """Shape a persisted finding for the report builder."""
+    return {
+        "id": finding.id,
+        "module": finding.module,
+        "title": finding.title,
+        "severity": finding.severity,
+        "confidence": finding.confidence,
+        "data": finding.data,
+        "evidence": finding.evidence,
+        "content_hash": finding.content_hash,
+        "collected_at": finding.collected_at,
+        "created_at": finding.created_at,
+    }
+
+
+async def collect_case_payload(repos: Repositories, case: CaseRecord) -> dict[str, Any]:
+    """Assemble everything needed to render a case as a combined report.
+
+    Findings from every attached scan plus directly attached findings are
+    de-duplicated by id so overlapping evidence never double-counts.
+    """
+    evidence = await repos.cases.list_evidence(case.id)
+    scan_ids = sorted({e.scan_id for e in evidence if e.scan_id is not None})
+    finding_ids = sorted({e.finding_id for e in evidence if e.finding_id is not None})
+
+    findings: list[dict[str, Any]] = []
+    seen: set[int] = set()
+    for scan_id in scan_ids:
+        for finding in await repos.findings.list_for_scan(scan_id):
+            if finding.id not in seen:
+                seen.add(finding.id)
+                findings.append(_finding_dict(finding))
+    for finding_id in finding_ids:
+        record = await repos.findings.get(finding_id)
+        if record is not None and record.id not in seen:
+            seen.add(record.id)
+            findings.append(_finding_dict(record))
+
+    return {
+        "case": case,
+        "scan": {
+            "id": None,
+            "uuid": f"case-{case.id}",
+            "mode": "case",
+            "status": case.status,
+            "started_at": case.created_at,
+            "finished_at": None,
+            "duration": None,
+            "error": None,
+            "runs": [],
+        },
+        "target": {"value": case.name, "type": "case"},
+        "findings": findings,
+        "evidence": evidence,
+        "scan_ids": scan_ids,
+    }
 
 
 def make_result_sink(db: Database) -> ResultSink:

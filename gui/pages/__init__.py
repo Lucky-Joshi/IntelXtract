@@ -3,6 +3,7 @@
 from gui.pages.about import AboutPage
 from gui.pages.api_manager import ApiManagerPage
 from gui.pages.base import Page
+from gui.pages.cases import CasesPage
 from gui.pages.dashboard import DashboardPage
 from gui.pages.deep_scan import DeepScanPage
 from gui.pages.history import HistoryPage
@@ -16,6 +17,7 @@ from gui.pages.settings import SettingsPage
 __all__ = [
     "AboutPage",
     "ApiManagerPage",
+    "CasesPage",
     "DashboardPage",
     "DeepScanPage",
     "HistoryPage",

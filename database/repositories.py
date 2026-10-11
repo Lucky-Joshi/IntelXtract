@@ -173,6 +173,42 @@ class ScheduleRecord:
     updated_at: str
 
 
+@dataclass(frozen=True, slots=True)
+class CaseRecord:
+    """An investigation grouping scans, notes, and evidence."""
+
+    id: int
+    name: str
+    description: str
+    status: str
+    created_at: str
+    updated_at: str
+
+
+@dataclass(frozen=True, slots=True)
+class CaseNoteRecord:
+    """A timestamped note attached to a case."""
+
+    id: int
+    case_id: int
+    body: str
+    created_at: str
+
+
+@dataclass(frozen=True, slots=True)
+class CaseEvidenceRecord:
+    """A scan/finding reference attached to a case."""
+
+    id: int
+    case_id: int
+    scan_id: int | None
+    finding_id: int | None
+    kind: str
+    label: str
+    detail: str
+    created_at: str
+
+
 def _target_row(row: sqlite3.Row) -> TargetRecord:
     return TargetRecord(
         id=int(row["id"]),
@@ -289,6 +325,39 @@ def _schedule_row(row: sqlite3.Row) -> ScheduleRecord:
         last_error=row["last_error"],
         created_at=str(row["created_at"]),
         updated_at=str(row["updated_at"]),
+    )
+
+
+def _case_row(row: sqlite3.Row) -> CaseRecord:
+    return CaseRecord(
+        id=int(row["id"]),
+        name=str(row["name"]),
+        description=str(row["description"]),
+        status=str(row["status"]),
+        created_at=str(row["created_at"]),
+        updated_at=str(row["updated_at"]),
+    )
+
+
+def _case_note_row(row: sqlite3.Row) -> CaseNoteRecord:
+    return CaseNoteRecord(
+        id=int(row["id"]),
+        case_id=int(row["case_id"]),
+        body=str(row["body"]),
+        created_at=str(row["created_at"]),
+    )
+
+
+def _case_evidence_row(row: sqlite3.Row) -> CaseEvidenceRecord:
+    return CaseEvidenceRecord(
+        id=int(row["id"]),
+        case_id=int(row["case_id"]),
+        scan_id=row["scan_id"],
+        finding_id=row["finding_id"],
+        kind=str(row["kind"]),
+        label=str(row["label"]),
+        detail=str(row["detail"]),
+        created_at=str(row["created_at"]),
     )
 
 
@@ -524,6 +593,13 @@ class FindingRepository:
             "SELECT COUNT(*) AS n FROM findings WHERE scan_id = ?", (scan_id,)
         )
         return int(row["n"]) if row is not None else 0
+
+    async def get(self, finding_id: int) -> FindingRecord | None:
+        """Fetch one finding by primary key."""
+        row = await self._db.fetchone(
+            "SELECT * FROM findings WHERE id = ?", (finding_id,)
+        )
+        return _finding_row(row) if row is not None else None
 
 
 class ReportRepository:
@@ -848,6 +924,144 @@ class ScheduleRepository:
         return [_schedule_row(r) for r in rows]
 
 
+class CaseRepository:
+    """CRUD for investigation cases plus their notes and evidence."""
+
+    def __init__(self, db: Database) -> None:
+        self._db = db
+
+    async def create(
+        self, name: str, *, description: str = "", status: str = "open"
+    ) -> CaseRecord:
+        """Create a case (names are unique and trimmed)."""
+        cleaned = name.strip()
+        if not cleaned:
+            raise DatabaseError("case name must not be empty")
+        if await self.get_by_name(cleaned) is not None:
+            raise DatabaseError(f"case already exists: {cleaned}")
+        now = utc_now()
+        cursor = await self._db.execute(
+            "INSERT INTO cases (name, description, status, created_at, updated_at)"
+            " VALUES (?, ?, ?, ?, ?)",
+            (cleaned, description, status, now, now),
+        )
+        record = await self.get(_cursor_id(cursor))
+        if record is None:
+            raise DatabaseError("case insert did not produce a row")
+        return record
+
+    async def get(self, case_id: int) -> CaseRecord | None:
+        """Fetch one case by id."""
+        row = await self._db.fetchone("SELECT * FROM cases WHERE id = ?", (case_id,))
+        return _case_row(row) if row is not None else None
+
+    async def get_by_name(self, name: str) -> CaseRecord | None:
+        """Fetch one case by its unique name."""
+        row = await self._db.fetchone(
+            "SELECT * FROM cases WHERE name = ?", (name.strip(),)
+        )
+        return _case_row(row) if row is not None else None
+
+    async def resolve(self, ref: str) -> CaseRecord | None:
+        """Look up a case by integer id or by name."""
+        if ref.strip().isdigit():
+            return await self.get(int(ref))
+        return await self.get_by_name(ref)
+
+    async def set_status(self, case_id: int, status: str) -> None:
+        """Update a case's status (raises when it is unknown)."""
+        cursor = await self._db.execute(
+            "UPDATE cases SET status = ?, updated_at = ? WHERE id = ?",
+            (status, utc_now(), case_id),
+        )
+        if cursor.rowcount == 0:
+            raise DatabaseError(f"unknown case: {case_id}")
+
+    async def delete(self, case_id: int) -> bool:
+        """Remove a case and its notes/evidence; returns whether it existed."""
+        cursor = await self._db.execute("DELETE FROM cases WHERE id = ?", (case_id,))
+        return cursor.rowcount > 0
+
+    async def _require(self, case_id: int) -> CaseRecord:
+        record = await self.get(case_id)
+        if record is None:
+            raise DatabaseError(f"unknown case: {case_id}")
+        return record
+
+    async def _touch(self, case_id: int) -> None:
+        await self._db.execute(
+            "UPDATE cases SET updated_at = ? WHERE id = ?", (utc_now(), case_id)
+        )
+
+    async def add_note(self, case_id: int, body: str) -> CaseNoteRecord:
+        """Append a note to a case (raises when the case is unknown)."""
+        await self._require(case_id)
+        cursor = await self._db.execute(
+            "INSERT INTO case_notes (case_id, body, created_at) VALUES (?, ?, ?)",
+            (case_id, body, utc_now()),
+        )
+        row = await self._db.fetchone(
+            "SELECT * FROM case_notes WHERE id = ?", (_cursor_id(cursor),)
+        )
+        if row is None:
+            raise DatabaseError("case note insert did not produce a row")
+        await self._touch(case_id)
+        return _case_note_row(row)
+
+    async def list_notes(self, case_id: int) -> list[CaseNoteRecord]:
+        """Case notes in insertion order."""
+        rows = await self._db.fetchall(
+            "SELECT * FROM case_notes WHERE case_id = ? ORDER BY id", (case_id,)
+        )
+        return [_case_note_row(r) for r in rows]
+
+    async def attach(
+        self,
+        case_id: int,
+        *,
+        scan_id: int | None = None,
+        finding_id: int | None = None,
+        kind: str | None = None,
+        label: str = "",
+        detail: str = "",
+    ) -> CaseEvidenceRecord:
+        """Attach a scan or finding to a case as evidence."""
+        if scan_id is None and finding_id is None:
+            raise DatabaseError("evidence requires a scan or finding reference")
+        await self._require(case_id)
+        resolved_kind = kind or ("finding" if finding_id is not None else "scan")
+        cursor = await self._db.execute(
+            "INSERT INTO case_evidence (case_id, scan_id, finding_id, kind, label,"
+            " detail, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (case_id, scan_id, finding_id, resolved_kind, label, detail, utc_now()),
+        )
+        row = await self._db.fetchone(
+            "SELECT * FROM case_evidence WHERE id = ?", (_cursor_id(cursor),)
+        )
+        if row is None:
+            raise DatabaseError("case evidence insert did not produce a row")
+        await self._touch(case_id)
+        return _case_evidence_row(row)
+
+    async def list_evidence(self, case_id: int) -> list[CaseEvidenceRecord]:
+        """Evidence rows for a case in insertion order."""
+        rows = await self._db.fetchall(
+            "SELECT * FROM case_evidence WHERE case_id = ? ORDER BY id", (case_id,)
+        )
+        return [_case_evidence_row(r) for r in rows]
+
+    async def list(self, *, status: str | None = None) -> list[CaseRecord]:
+        """All cases ordered by id, optionally filtered by status."""
+        sql = "SELECT * FROM cases"
+        params: list[Any] = []
+        if status is not None:
+            sql += " WHERE status = ?"
+            params.append(status)
+        sql += " ORDER BY id"
+        rows = await self._db.fetchall(sql, params)
+        return [_case_row(r) for r in rows]
+
+
 class SettingRepository:
     """DB-backed runtime settings (JSON values)."""
 
@@ -897,4 +1111,5 @@ class Repositories:
         self.logs = LogRepository(db)
         self.history = HistoryRepository(db)
         self.schedules = ScheduleRepository(db)
+        self.cases = CaseRepository(db)
         self.settings = SettingRepository(db)

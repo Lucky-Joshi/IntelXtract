@@ -70,7 +70,7 @@ sub-phases that are small enough to implement and verify independently.
 | 19    | Reporting                  | F         | L    | [x]    |
 | 20    | Plugin SDK                 | G         | M    | [x]    |
 | 21    | Scheduler                  | G         | M    | [ ]    |
-| 22    | Case Management            | H         | M    | [ ]    |
+| 22    | Case Management            | H         | M    | [x]    |
 | 23    | AI Assistant (optional)    | H         | S    | [ ]    |
 | 24    | Settings                   | I         | M    | [ ]    |
 | 25    | Performance                | I         | M    | [ ]    |
@@ -614,12 +614,12 @@ history; resume after kill mid-scan works.
 
 **Objective:** Investigations grouping scans, notes, and evidence.
 
-- [ ] S22.1 Schema — `cases`, `case_notes`, `case_evidence` tables +
+- [x] S22.1 Schema — `cases`, `case_notes`, `case_evidence` tables +
       migration; link scans/findings to a case
-- [ ] S22.2 Repository + CLI — `intelxtract case create|list|note|attach`
-- [ ] S22.3 GUI — Cases page: create case, add notes, attach scans,
+- [x] S22.2 Repository + CLI — `intelxtract case create|list|note|attach`
+- [x] S22.3 GUI — Cases page: create case, add notes, attach scans,
       view combined findings
-- [ ] S22.4 Tests — repository round-trips, CLI coverage
+- [x] S22.4 Tests — repository round-trips, CLI coverage
 
 **Done criteria:** A case can be created, populated with scans/notes, and
 exported as a combined report.

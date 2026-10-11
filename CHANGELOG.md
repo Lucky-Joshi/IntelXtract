@@ -1,4 +1,13 @@
 
+### Phase 22 — Case Management
+
+- `database/migrations.py` — migration 4 creates `cases` (unique name, status, timestamps), `case_notes`, and `case_evidence` (`scan_id`/`finding_id` → scans/findings `ON DELETE SET NULL`) with per-case/scan indexes (S22.1).
+- `database/repositories.py` — `CaseRecord`/`CaseNoteRecord`/`CaseEvidenceRecord` + `CaseRepository` (`create`, `get`, `get_by_name`, `resolve`, `set_status`, `delete`, `list`, `add_note`, `list_notes`, `attach`, `list_evidence`) wired into `Repositories`; `FindingRepository.get` added for direct finding attachment (S22.1/S22.2).
+- `database/persistence.py` — `collect_case_payload()` gathers notes, evidence, and the de-duplicated union of findings from every attached scan/finding (reports reuse `build_report`, so a case exports as one combined report) (S22.2).
+- CLI — `case create|list|show|note|attach|export`; `export` writes `json|html|csv|md|pdf` to `exports/case-<id>.<ext>` or `--out` with PDF-fallback warnings (S22.2).
+- GUI — `gui/case_sync.py` (read + write sqlite helpers) and a Cases page (create case, add notes, attach scan ids, view combined findings); registered in the sidebar (S22.3).
+- Tests: migration version/table updates; `CaseRepository` CRUD/duplicate/unknown/cascade/notes/evidence/payload round-trips; CLI create/list/show/note/attach/export; GUI cases-page create→note→attach→duplicate (S22.4).
+
 ### Phase 21 — Scheduler
 
 - `database/migrations.py` — migration 3 creates the `schedules` table (target, mode, `interval_seconds`/`cron`, enabled, status, last/next run, last scan/error, timestamps) with `next_run`/`enabled` indexes (S21.1).

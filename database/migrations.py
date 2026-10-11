@@ -74,10 +74,48 @@ CREATE INDEX IF NOT EXISTS idx_schedules_enabled ON schedules (enabled, status);
 """
 
 
+_MIGRATION_4_SQL = """
+CREATE TABLE IF NOT EXISTS cases (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT    NOT NULL,
+    description TEXT    NOT NULL DEFAULT '',
+    status      TEXT    NOT NULL DEFAULT 'open',
+    created_at  TEXT    NOT NULL,
+    updated_at  TEXT    NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cases_name ON cases (name);
+
+CREATE TABLE IF NOT EXISTS case_notes (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    case_id    INTEGER NOT NULL REFERENCES cases (id) ON DELETE CASCADE,
+    body       TEXT    NOT NULL,
+    created_at TEXT    NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_case_notes_case ON case_notes (case_id);
+
+CREATE TABLE IF NOT EXISTS case_evidence (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    case_id    INTEGER NOT NULL REFERENCES cases (id) ON DELETE CASCADE,
+    scan_id    INTEGER REFERENCES scans (id) ON DELETE SET NULL,
+    finding_id INTEGER REFERENCES findings (id) ON DELETE SET NULL,
+    kind       TEXT    NOT NULL DEFAULT 'scan',
+    label      TEXT    NOT NULL DEFAULT '',
+    detail     TEXT    NOT NULL DEFAULT '',
+    created_at TEXT    NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_case_evidence_case ON case_evidence (case_id);
+CREATE INDEX IF NOT EXISTS idx_case_evidence_scan ON case_evidence (scan_id);
+"""
+
+
 MIGRATIONS: tuple[Migration, ...] = (
     Migration(version=1, name="initial schema", sql=_load_initial_sql()),
     Migration(version=2, name="finding normalized fields", sql=_MIGRATION_2_SQL),
     Migration(version=3, name="recurring schedules", sql=_MIGRATION_3_SQL),
+    Migration(version=4, name="case management", sql=_MIGRATION_4_SQL),
 )
 
 

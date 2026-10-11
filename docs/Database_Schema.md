@@ -11,6 +11,8 @@ PostgreSQL support is a post-1.0 option; the schema uses portable types
   Migration 2 adds the normalized `findings.title`, `findings.evidence`,
   `findings.content_hash`, and `findings.collected_at` columns (Phase 7).
   Migration 3 adds the `schedules` table (Phase 21).
+  Migration 4 adds the `cases`, `case_notes`, and `case_evidence` tables
+  (Phase 22).
 - All timestamps are **ISO-8601 UTC strings** (`2026-10-06T13:59:00+00:00`)
   except `duration` (REAL seconds) and confidence (REAL 0–1).
 - JSON columns (`data`, `payload`, `context`, `value`, `runs_json`) hold
@@ -24,6 +26,7 @@ targets 1 ────* scans 1 ────* findings
                  ├────* reports
                  │ 0..1
 history * ───────┘            plugins    (independent)
+cases 1 ────* case_notes        case_evidence * ──── scans/findings (optional)
 api_keys  (independent)       logs       (independent)
 settings  (independent)
 schema_version  (migration bookkeeping)
@@ -31,7 +34,9 @@ schema_version  (migration bookkeeping)
 
 `ON DELETE CASCADE`: deleting a target removes its scans, findings, and
 reports. `history.scan_id` uses `ON DELETE SET NULL` (entries survive scan
-pruning).
+pruning). Deleting a case cascades its notes and evidence;
+`case_evidence.scan_id`/`finding_id` use `ON DELETE SET NULL` so evidence
+rows survive scan pruning.
 
 ## Tables
 
@@ -185,6 +190,49 @@ Indexes: `next_run_at`, `(enabled, status)`.
 > `interval_seconds` or `cron`; the runner computes `next_run_at` after each
 > run. Schedules stranded in `status = 'running'` are reset to `idle` on
 > startup so interrupted scans are re-queued.
+
+### cases
+
+| Column | Type | Constraints | Purpose |
+|--------|------|-------------|---------|
+| id | INTEGER | PK AUTOINCREMENT | |
+| name | TEXT | NOT NULL | investigation name (unique) |
+| description | TEXT | NOT NULL, default `''` | summary |
+| status | TEXT | NOT NULL, default `open` | `open`/`closed`/… |
+| created_at | TEXT | NOT NULL | |
+| updated_at | TEXT | NOT NULL | bumped on note/evidence change |
+
+Index: `name` UNIQUE.
+
+### case_notes
+
+| Column | Type | Constraints | Purpose |
+|--------|------|-------------|---------|
+| id | INTEGER | PK AUTOINCREMENT | |
+| case_id | INTEGER | NOT NULL, FK → cases(id) ON DELETE CASCADE | owner |
+| body | TEXT | NOT NULL | note text |
+| created_at | TEXT | NOT NULL | |
+
+Index: `case_id`.
+
+### case_evidence
+
+| Column | Type | Constraints | Purpose |
+|--------|------|-------------|---------|
+| id | INTEGER | PK AUTOINCREMENT | |
+| case_id | INTEGER | NOT NULL, FK → cases(id) ON DELETE CASCADE | owner |
+| scan_id | INTEGER | NULL, FK → scans(id) ON DELETE SET NULL | attached scan |
+| finding_id | INTEGER | NULL, FK → findings(id) ON DELETE SET NULL | attached finding |
+| kind | TEXT | NOT NULL, default `scan` | `scan`/`finding`/other |
+| label | TEXT | NOT NULL, default `''` | human label |
+| detail | TEXT | NOT NULL, default `''` | free-form detail |
+| created_at | TEXT | NOT NULL | |
+
+Indexes: `case_id`, `scan_id`.
+
+> Migration 4 (Phase 22). A case groups scans, findings, notes, and evidence
+> for one investigation; `collect_case_payload()` de-duplicates findings across
+> attached scans/findings so a case exports as a single combined report.
 
 ### schema_version
 

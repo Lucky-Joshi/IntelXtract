@@ -80,6 +80,7 @@ def test_window_launches_and_every_page_opens(make_window: Any) -> None:
         "results",
         "reports",
         "history",
+        "cases",
         "schedules",
         "plugins",
         "api_manager",
@@ -256,3 +257,38 @@ def test_dashboard_refresh_reads_db(make_window: Any) -> None:
     assert dashboard.stat_labels["completed"].text() == "1"
     assert dashboard.scans_table.rowCount() == 1
     assert dashboard.scans_table.item(0, 1).text() == "dash.test"
+
+
+def test_cases_page_create_note_attach(make_window: Any) -> None:
+    window = make_window(modules=[DummyModule()])
+    window.switch_page("quick_scan")
+    quick = window.page("quick_scan")
+    quick.target_input.setText("case-target.test")
+    spy = QSignalSpy(window.bridge.scan_finished)
+    quick.run_button.click()
+    assert wait_spy(spy)
+
+    window.switch_page("cases")
+    cases = window.page("cases")
+
+    cases.name_input.setText("Investigation One")
+    cases.desc_input.setText("initial recon")
+    cases._create()
+    assert cases.table.rowCount() == 1
+    assert cases.table.item(0, 1).text() == "Investigation One"
+    assert "created" in cases._status.text()
+
+    cases.table.selectRow(0)
+    cases.note_input.setText("first lead")
+    cases._add_note()
+    assert cases.notes_table.rowCount() == 1
+    assert cases.notes_table.item(0, 1).text() == "first lead"
+
+    cases.scan_input.setText("1")
+    cases._attach_scan()
+    assert "attached" in cases._status.text()
+    assert cases.table.item(0, 4).text() == "1"
+
+    cases.name_input.setText("Investigation One")
+    cases._create()
+    assert "already exists" in cases._status.text()

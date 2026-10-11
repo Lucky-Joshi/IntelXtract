@@ -97,6 +97,8 @@ def test_help_lists_commands(cli_env: Path) -> None:
         "history",
         "config",
         "plugin",
+        "schedule",
+        "case",
         "doctor",
         "update",
     ):
@@ -328,6 +330,9 @@ _COUNT_QUERIES = {
     "scans": "SELECT COUNT(*) FROM scans",
     "history": "SELECT COUNT(*) FROM history",
     "schedules": "SELECT COUNT(*) FROM schedules",
+    "cases": "SELECT COUNT(*) FROM cases",
+    "case_notes": "SELECT COUNT(*) FROM case_notes",
+    "case_evidence": "SELECT COUNT(*) FROM case_evidence",
 }
 
 
@@ -418,6 +423,86 @@ def test_schedule_run_once_no_due(cli_env: Path) -> None:
     result = runner.invoke(app, ["schedule", "run", "--once"])
     assert result.exit_code == 0
     assert "no schedules due" in result.stdout
+
+
+# --- case --------------------------------------------------------------------
+
+
+def test_case_create_list_show(cli_env: Path) -> None:
+    created = runner.invoke(
+        app, ["case", "create", "Operation Dawn", "--description", "recon"]
+    )
+    assert created.exit_code == 0
+    assert "Operation Dawn" in created.stdout
+    assert _rows(cli_env, "SELECT name FROM cases") == [("Operation Dawn",)]
+
+    duplicate = runner.invoke(app, ["case", "create", "Operation Dawn"])
+    assert duplicate.exit_code == 1
+    assert "already exists" in duplicate.stderr
+
+    listed = runner.invoke(app, ["case", "list"])
+    assert listed.exit_code == 0
+    assert "1 case(s)" in listed.stdout
+
+    shown = runner.invoke(app, ["case", "show", "Operation Dawn"])
+    assert shown.exit_code == 0
+    assert "recon" in shown.stdout
+    assert "0 combined finding(s)" in shown.stdout
+
+
+def test_case_missing(cli_env: Path) -> None:
+    missing = runner.invoke(app, ["case", "show", "ghost"])
+    assert missing.exit_code == 1
+    assert "case not found" in missing.stderr
+
+
+def test_case_note(cli_env: Path) -> None:
+    runner.invoke(app, ["case", "create", "Noted"])
+    noted = runner.invoke(app, ["case", "note", "Noted", "found a clue"])
+    assert noted.exit_code == 0
+    assert _count(cli_env, "case_notes") == 1
+    assert _rows(cli_env, "SELECT body FROM case_notes") == [("found a clue",)]
+
+
+def test_case_attach_requires_reference(cli_env: Path) -> None:
+    runner.invoke(app, ["case", "create", "Alpha"])
+    result = runner.invoke(app, ["case", "attach", "Alpha"])
+    assert result.exit_code == 1
+    assert "requires --scan" in result.stderr
+
+
+def test_case_attach_and_export(cli_env: Path) -> None:
+    runner.invoke(app, ["scan", "example.com"])
+    runner.invoke(app, ["case", "create", "Alpha"])
+
+    unknown_scan = runner.invoke(app, ["case", "attach", "Alpha", "--scan", "999"])
+    assert unknown_scan.exit_code == 1
+    assert "scan not found" in unknown_scan.stderr
+
+    unknown_finding = runner.invoke(app, ["case", "attach", "Alpha", "--finding", "42"])
+    assert unknown_finding.exit_code == 1
+    assert "finding not found" in unknown_finding.stderr
+
+    attached = runner.invoke(app, ["case", "attach", "Alpha", "--scan", "1"])
+    assert attached.exit_code == 0
+    assert _count(cli_env, "case_evidence") == 1
+    assert _rows(cli_env, "SELECT scan_id FROM case_evidence") == [(1,)]
+
+    exported = runner.invoke(app, ["case", "export", "Alpha", "--format", "json"])
+    assert exported.exit_code == 0
+    assert "case report written" in exported.stdout
+    assert (cli_env / "exports" / "case-1.json").is_file()
+
+
+def test_case_export_markdown(cli_env: Path) -> None:
+    runner.invoke(app, ["case", "create", "Beta"])
+    out = cli_env / "beta.md"
+    exported = runner.invoke(
+        app, ["case", "export", "Beta", "--format", "md", "--out", str(out)]
+    )
+    assert exported.exit_code == 0
+    assert out.is_file()
+    assert "Beta" in out.read_text(encoding="utf-8")
 
 
 # --- doctor ------------------------------------------------------------------
