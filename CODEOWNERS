@@ -1,0 +1,81 @@
+# IntelXtract CODEOWNERS
+#
+# These users/groups will be requested for review when someone opens a PR
+# that modifies the listed files/patterns.
+#
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owners (review all changes)
+* @intelxtract/core-maintainers
+
+# Core engine - critical path
+/core/engine.py @intelxtract/core-maintainers
+/core/http_client.py @intelxtract/core-maintainers
+/core/worker_pool.py @intelxtract/core-maintainers
+/core/scheduler.py @intelxtract/core-maintainers
+/core/scheduling.py @intelxtract/core-maintainers
+/core/input_engine.py @intelxtract/core-maintainers
+/core/cache.py @intelxtract/core-maintainers
+/core/offload.py @intelxtract/core-maintainers
+
+# Correlation & Risk engines
+/core/correlation.py @intelxtract/intelligence-team
+/core/risk.py @intelxtract/intelligence-team
+/core/risk_rules.py @intelxtract/intelligence-team
+/core/entities.py @intelxtract/intelligence-team
+
+# Database layer
+/database/ @intelxtract/data-team
+/database/migrations.py @intelxtract/data-team
+/database/persistence.py @intelxtract/data-team
+
+# Plugin system
+/core/plugin_loader.py @intelxtract/platform-team
+/plugins/ @intelxtract/platform-team
+
+# CLI
+/cli/ @intelxtract/cli-team
+
+# GUI
+/gui/ @intelxtract/gui-team
+/gui/pages/ @intelxtract/gui-team
+/gui/viz/ @intelxtract/gui-team
+
+# Reports
+/reports/ @intelxtract/reporting-team
+/templates/ @intelxtract/reporting-team
+
+# Modules
+/modules/ @intelxtract/modules-team
+/modules/domain/ @intelxtract/modules-team
+/modules/ip/ @intelxtract/modules-team
+/modules/email/ @intelxtract/modules-team
+/modules/username/ @intelxtract/modules-team
+/modules/website/ @intelxtract/modules-team
+/modules/certificate/ @intelxtract/modules-team
+/modules/metadata/ @intelxtract/modules-team
+/modules/news/ @intelxtract/modules-team
+
+# Configuration & Security
+/core/config.py @intelxtract/core-maintainers
+/core/vault.py @intelxtract/security-team
+/core/exceptions.py @intelxtract/core-maintainers
+/core/constants.py @intelxtract/core-maintainers
+/core/logger.py @intelxtract/core-maintainers
+
+# Documentation
+/docs/ @intelxtract/docs-team
+/README.md @intelxtract/docs-team
+
+# CI/CD and Build
+/.github/workflows/ @intelxtract/platform-team
+/scripts/ @intelxtract/platform-team
+/Dockerfile @intelxtract/platform-team
+/docker-compose.yml @intelxtract/platform-team
+/scripts/pyinstaller/ @intelxtract/platform-team
+
+# Testing infrastructure
+/tests/ @intelxtract/qa-team
+/tests/fakes.py @intelxtract/qa-team
+/tests/conftest.py @intelxtract/qa-team
+/pyproject.toml @intelxtract/core-maintainers

@@ -1,0 +1,38 @@
+severity,module,title,confidence,evidence
+medium,http,HTTP: missing content-security-policy,0.8,content-security-policy not sent over https
+medium,http,HTTP: missing strict-transport-security,0.8,strict-transport-security not sent over https
+low,http,HTTP: missing permissions-policy,0.8,permissions-policy not sent over https
+low,http,HTTP: missing referrer-policy,0.8,referrer-policy not sent over https
+low,http,HTTP: missing x-frame-options,0.8,x-frame-options not sent over https
+low,http,HTTP: no robots.txt,0.9,HTTP 404
+low,http,HTTP: no sitemap.xml,0.9,HTTP 404
+info,dns,DNS: A records,0.9,2 record(s)
+info,dns,DNS: AAAA records,0.9,2 record(s)
+info,dns,DNS: DKIM selector '2020',0.9,"""v=DKIM1; p="""
+info,dns,DNS: DKIM selector '2021',0.9,"""v=DKIM1; p="""
+info,dns,DNS: DKIM selector 'default',0.9,"""v=DKIM1; p="""
+info,dns,DNS: DKIM selector 'dkim',0.9,"""v=DKIM1; p="""
+info,dns,DNS: DKIM selector 'google',0.9,"""v=DKIM1; p="""
+info,dns,DNS: DKIM selector 'mail',0.9,"""v=DKIM1; p="""
+info,dns,DNS: DKIM selector 'pacman',0.9,"""v=DKIM1; p="""
+info,dns,DNS: DKIM selector 's1',0.9,"""v=DKIM1; p="""
+info,dns,DNS: DKIM selector 's2',0.9,"""v=DKIM1; p="""
+info,dns,DNS: DKIM selector 's3',0.9,"""v=DKIM1; p="""
+info,dns,DNS: DKIM selector 'selector1',0.9,"""v=DKIM1; p="""
+info,dns,DNS: DKIM selector 'selector2',0.9,"""v=DKIM1; p="""
+info,dns,DNS: DKIM selector 'selector3',0.9,"""v=DKIM1; p="""
+info,dns,DNS: DMARC record,0.9,"""v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s"""
+info,dns,DNS: MX records,0.9,1 record(s)
+info,dns,DNS: NS records,0.9,2 record(s)
+info,dns,DNS: SPF record,0.9,"""v=spf1 -all""""_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9"""
+info,dns,DNS: TXT records,0.9,2 record(s)
+info,http,HTTP: http responds,0.9,HTTP 200 at http://example.com/
+info,http,HTTP: https responds,0.9,HTTP 200 at https://example.com/
+info,news,News: timeline,0.7,12 recent article(s) across 1 feed(s)
+info,ssl,SSL: certificate,0.9,[] from ['unknown']
+info,ssl,SSL: subject alternative names,0.9,0 SAN(s)
+info,whois,RDAP: DNSSEC signed,0.9,delegation_signature=signed
+info,whois,RDAP: nameservers,0.9,"ELLIOTT.NS.CLOUDFLARE.COM, HERA.NS.CLOUDFLARE.COM"
+info,whois,RDAP: registrar,0.9,None
+info,whois,RDAP: registration dates,0.9,expires 2027-08-13T04:00:00Z
+info,whois,RDAP: status flags,0.9,client delete prohibited; client transfer prohibited; client update prohibited

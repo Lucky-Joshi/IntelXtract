@@ -1,0 +1,1095 @@
+{
+  "generated_at": "2026-10-11T14:20:48",
+  "app": {
+    "name": "IntelXtract",
+    "version": "0.1.0a0"
+  },
+  "scan": {
+    "id": null,
+    "uuid": "case-1",
+    "mode": "case",
+    "status": "open",
+    "started_at": "2026-10-11T08:50:24+00:00",
+    "finished_at": null,
+    "duration": null,
+    "error": null,
+    "runs": []
+  },
+  "target": {
+    "value": "Example Investigation",
+    "type": "case"
+  },
+  "findings": [
+    {
+      "module": "dns",
+      "title": "DNS: A records",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "type": "A",
+        "records": [
+          "172.66.147.243",
+          "104.20.23.154"
+        ]
+      },
+      "evidence": "2 record(s)",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: AAAA records",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "type": "AAAA",
+        "records": [
+          "2606:4700:10::ac42:93f3",
+          "2606:4700:10::6814:179a"
+        ]
+      },
+      "evidence": "2 record(s)",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: NS records",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "type": "NS",
+        "records": [
+          "hera.ns.cloudflare.com.",
+          "elliott.ns.cloudflare.com."
+        ]
+      },
+      "evidence": "2 record(s)",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: MX records",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "type": "MX",
+        "records": [
+          "0 ."
+        ]
+      },
+      "evidence": "1 record(s)",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: TXT records",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "type": "TXT",
+        "records": [
+          "\"v=spf1 -all\"",
+          "\"_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9\""
+        ]
+      },
+      "evidence": "2 record(s)",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: SPF record",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "record": "\"v=spf1 -all\"\"_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9\""
+      },
+      "evidence": "\"v=spf1 -all\"\"_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DMARC record",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "record": "\"v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s\""
+      },
+      "evidence": "\"v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'default'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "default",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'google'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "google",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'selector1'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "selector1",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'selector2'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "selector2",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'selector3'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "selector3",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'dkim'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "dkim",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'mail'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "mail",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 's1'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "s1",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 's2'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "s2",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 's3'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "s3",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector '2020'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "2020",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector '2021'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "2021",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'pacman'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "pacman",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: https responds",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "status": 200,
+        "url": "https://example.com/",
+        "redirects": 0
+      },
+      "evidence": "HTTP 200 at https://example.com/",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: http responds",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "status": 200,
+        "url": "http://example.com/",
+        "redirects": 0
+      },
+      "evidence": "HTTP 200 at http://example.com/",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: no robots.txt",
+      "severity": "low",
+      "confidence": 0.9,
+      "data": {
+        "label": "robots.txt",
+        "status": 404
+      },
+      "evidence": "HTTP 404",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: no sitemap.xml",
+      "severity": "low",
+      "confidence": 0.9,
+      "data": {
+        "label": "sitemap.xml",
+        "status": 404
+      },
+      "evidence": "HTTP 404",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing strict-transport-security",
+      "severity": "medium",
+      "confidence": 0.8,
+      "data": {
+        "header": "strict-transport-security"
+      },
+      "evidence": "strict-transport-security not sent over https",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing content-security-policy",
+      "severity": "medium",
+      "confidence": 0.8,
+      "data": {
+        "header": "content-security-policy"
+      },
+      "evidence": "content-security-policy not sent over https",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing x-frame-options",
+      "severity": "low",
+      "confidence": 0.8,
+      "data": {
+        "header": "x-frame-options"
+      },
+      "evidence": "x-frame-options not sent over https",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing referrer-policy",
+      "severity": "low",
+      "confidence": 0.8,
+      "data": {
+        "header": "referrer-policy"
+      },
+      "evidence": "referrer-policy not sent over https",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing permissions-policy",
+      "severity": "low",
+      "confidence": 0.8,
+      "data": {
+        "header": "permissions-policy"
+      },
+      "evidence": "permissions-policy not sent over https",
+      "created_at": "2026-10-11T08:39:17+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: A records",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "type": "A",
+        "records": [
+          "172.66.147.243",
+          "104.20.23.154"
+        ]
+      },
+      "evidence": "2 record(s)",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: AAAA records",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "type": "AAAA",
+        "records": [
+          "2606:4700:10::6814:179a",
+          "2606:4700:10::ac42:93f3"
+        ]
+      },
+      "evidence": "2 record(s)",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: NS records",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "type": "NS",
+        "records": [
+          "hera.ns.cloudflare.com.",
+          "elliott.ns.cloudflare.com."
+        ]
+      },
+      "evidence": "2 record(s)",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: MX records",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "type": "MX",
+        "records": [
+          "0 ."
+        ]
+      },
+      "evidence": "1 record(s)",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: TXT records",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "type": "TXT",
+        "records": [
+          "\"v=spf1 -all\"",
+          "\"_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9\""
+        ]
+      },
+      "evidence": "2 record(s)",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: SPF record",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "record": "\"v=spf1 -all\"\"_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9\""
+      },
+      "evidence": "\"v=spf1 -all\"\"_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DMARC record",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "record": "\"v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s\""
+      },
+      "evidence": "\"v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'default'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "default",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'google'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "google",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'selector1'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "selector1",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'selector2'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "selector2",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'selector3'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "selector3",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'dkim'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "dkim",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'mail'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "mail",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 's1'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "s1",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 's2'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "s2",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 's3'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "s3",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector '2020'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "2020",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector '2021'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "2021",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "dns",
+      "title": "DNS: DKIM selector 'pacman'",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "selector": "pacman",
+        "record": "\"v=DKIM1; p=\""
+      },
+      "evidence": "\"v=DKIM1; p=\"",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: https responds",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "status": 200,
+        "url": "https://example.com/",
+        "redirects": 0
+      },
+      "evidence": "HTTP 200 at https://example.com/",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: http responds",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "status": 200,
+        "url": "http://example.com/",
+        "redirects": 0
+      },
+      "evidence": "HTTP 200 at http://example.com/",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: no robots.txt",
+      "severity": "low",
+      "confidence": 0.9,
+      "data": {
+        "label": "robots.txt",
+        "status": 404
+      },
+      "evidence": "HTTP 404",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: no sitemap.xml",
+      "severity": "low",
+      "confidence": 0.9,
+      "data": {
+        "label": "sitemap.xml",
+        "status": 404
+      },
+      "evidence": "HTTP 404",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing strict-transport-security",
+      "severity": "medium",
+      "confidence": 0.8,
+      "data": {
+        "header": "strict-transport-security"
+      },
+      "evidence": "strict-transport-security not sent over https",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing content-security-policy",
+      "severity": "medium",
+      "confidence": 0.8,
+      "data": {
+        "header": "content-security-policy"
+      },
+      "evidence": "content-security-policy not sent over https",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing x-frame-options",
+      "severity": "low",
+      "confidence": 0.8,
+      "data": {
+        "header": "x-frame-options"
+      },
+      "evidence": "x-frame-options not sent over https",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing referrer-policy",
+      "severity": "low",
+      "confidence": 0.8,
+      "data": {
+        "header": "referrer-policy"
+      },
+      "evidence": "referrer-policy not sent over https",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing permissions-policy",
+      "severity": "low",
+      "confidence": 0.8,
+      "data": {
+        "header": "permissions-policy"
+      },
+      "evidence": "permissions-policy not sent over https",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "news",
+      "title": "News: timeline",
+      "severity": "info",
+      "confidence": 0.7,
+      "data": {
+        "target": "example.com",
+        "count": 12,
+        "articles": [
+          {
+            "title": "example.com, famous for being 'almost completely empty,' has undergone a major redesign, now supporting six languages, and comes with a warning: 'Do not use it for testing or monitoring.' - GIGAZINE",
+            "url": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE1qc3owaVlUZGIxdUk4ZHBwc0NCT1FzNzRLaVNwT0k5UlFNWEljeTVKTmJSV0R4M2JBNUt4ak02OHZuYTRHdGttX2ozSUgtSE83TUNzLW5kR0kzRmVSaVVOTEJhTWQ?oc=5",
+            "source": "GIGAZINE",
+            "published": "2026-10-07T09:10:00+00:00",
+            "guid": "CBMiZEFVX3lxTE1qc3owaVlUZGIxdUk4ZHBwc0NCT1FzNzRLaVNwT0k5UlFNWEljeTVKTmJSV0R4M2JBNUt4ak02OHZuYTRHdGttX2ozSUgtSE83TUNzLW5kR0kzRmVSaVVOTEJhTWQ"
+          },
+          {
+            "title": "Example.com redesign adds rotating languages, splits page to cut bot traffic - news.lavx.hu",
+            "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxOYjJyeW9EcjVRVWw0U3U3U2FkbjFyU1JmWG4xekNPbHN6VnFDZ1VxLWd5ZjRndzdoUGxIMThhWnRxS20tS1AzUDJtTGVmM3dPNXVCdDFKNnpZeUhHR2gyeENOTkF6QWdJZENOQnhSOWZHMmNYWW80TmlnTER0OFZtdENnYnlPdVdGbW42UGpsVzdrZHJDM0NzZkEwYjA1REhmZjBNbzBacw?oc=5",
+            "source": "news.lavx.hu",
+            "published": "2026-10-06T05:23:12+00:00",
+            "guid": "CBMipwFBVV95cUxOYjJyeW9EcjVRVWw0U3U3U2FkbjFyU1JmWG4xekNPbHN6VnFDZ1VxLWd5ZjRndzdoUGxIMThhWnRxS20tS1AzUDJtTGVmM3dPNXVCdDFKNnpZeUhHR2gyeENOTkF6QWdJZENOQnhSOWZHMmNYWW80TmlnTER0OFZtdENnYnlPdVdGbW42UGpsVzdrZHJDM0NzZkEwYjA1REhmZjBNbzBacw"
+          },
+          {
+            "title": "Placeholder third-party[.]com Referenced Across 1,700+ Repositories Now Serves Malicious Content - The Hacker News",
+            "url": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNZXJ3YlZ2VUdQN0g4RzcxUUI2N3dxU0xVdXRZeDh6ZGRaSHRMS1pjMk5VbVNHOTlxX2JZVUl3c295NndJa09MY3ZVRmQtLVk5MDFLYWRsSVYyYVM2ajByTzAwQklpa2VXZW5QVzM1MXEtZV8xTEUzV3dkeHJlb3l3TVB3?oc=5",
+            "source": "The Hacker News",
+            "published": "2026-09-24T07:00:00+00:00",
+            "guid": "CBMiggFBVV95cUxNZXJ3YlZ2VUdQN0g4RzcxUUI2N3dxU0xVdXRZeDh6ZGRaSHRMS1pjMk5VbVNHOTlxX2JZVUl3c295NndJa09MY3ZVRmQtLVk5MDFLYWRsSVYyYVM2ajByTzAwQklpa2VXZW5QVzM1MXEtZV8xTEUzV3dkeHJlb3l3TVB3"
+          },
+          {
+            "title": "3 AI Prompts for Google Ads - Practical Ecommerce",
+            "url": "https://news.google.com/rss/articles/CBMib0FVX3lxTE9QSlBydDFPb19yckJ4UVRld3ZWXzlZUFEtZzJuTkNONHM3OVIyb3JVSFN6anRkTEF1bmNsM2d0UEg1S1AyZF9NNmZPOTNncjRyVzZEbXlHZmh4dy1mNnhEZUEwZHFjSW43Y29VRnBQVQ?oc=5",
+            "source": "Practical Ecommerce",
+            "published": "2026-08-11T07:00:00+00:00",
+            "guid": "CBMib0FVX3lxTE9QSlBydDFPb19yckJ4UVRld3ZWXzlZUFEtZzJuTkNONHM3OVIyb3JVSFN6anRkTEF1bmNsM2d0UEg1S1AyZF9NNmZPOTNncjRyVzZEbXlHZmh4dy1mNnhEZUEwZHFjSW43Y29VRnBQVQ"
+          },
+          {
+            "title": "I built my own Wayback Machine, and now I never lose web pages - MakeUseOf",
+            "url": "https://news.google.com/rss/articles/CBMikgFBVV95cUxPNTYxQmFuTWg5MHhkNDBlWThYS1NiZUk3cHRQTjB1QzJ2emIyOUpTVWdpTUl3Mi1jUlpnUHRaVFd3b2RBSjJCMkpPZEJBZjV5aFQ1LURSa2oyaS1ORXBDOVBGQU45SS1ENnRhLVBLbVlrWDVONUQ2MlFwRjhGZ3RwaWhfal93QU5jSkU0TlAzVGxvUQ?oc=5",
+            "source": "MakeUseOf",
+            "published": "2026-08-08T07:00:00+00:00",
+            "guid": "CBMikgFBVV95cUxPNTYxQmFuTWg5MHhkNDBlWThYS1NiZUk3cHRQTjB1QzJ2emIyOUpTVWdpTUl3Mi1jUlpnUHRaVFd3b2RBSjJCMkpPZEJBZjV5aFQ1LURSa2oyaS1ORXBDOVBGQU45SS1ENnRhLVBLbVlrWDVONUQ2MlFwRjhGZ3RwaWhfal93QU5jSkU0TlAzVGxvUQ"
+          },
+          {
+            "title": "Adform compromised to serve crypto stealer via supply chain attack - DoublePulsar",
+            "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPd1FMdUxQTEt0V015Z2Jvb0lCNk9NNmhjZnFBQV9XM2dlb1dfVzN6VFlrTVJON2IyVVh1MTFXX3NZU1czMjU0cnVpMU1IMVR4Wm9LZXdubmVZR1hYQll0bXl5U2Y5Rkp2YTdKNEtyOG9md2pWeVJVNjVtUS1pUzlSMllWeHdpRHl6MEh3d2pxZEdDRXpBd0VSREsxRkg5aF9wbFBIeUd4cw?oc=5",
+            "source": "DoublePulsar",
+            "published": "2026-07-30T07:00:00+00:00",
+            "guid": "CBMipwFBVV95cUxPd1FMdUxQTEt0V015Z2Jvb0lCNk9NNmhjZnFBQV9XM2dlb1dfVzN6VFlrTVJON2IyVVh1MTFXX3NZU1czMjU0cnVpMU1IMVR4Wm9LZXdubmVZR1hYQll0bXl5U2Y5Rkp2YTdKNEtyOG9md2pWeVJVNjVtUS1pUzlSMllWeHdpRHl6MEh3d2pxZEdDRXpBd0VSREsxRkg5aF9wbFBIeUd4cw"
+          },
+          {
+            "title": "How to log in to WordPress dashboard: 3 simple methods - Hostinger",
+            "url": "https://news.google.com/rss/articles/CBMigAFBVV95cUxOQXlNYUVLY2xmdFhhUHF1NXd2SktxRFhBQy1yRlQ1Uk90R2ZPZHZLYmRHWHNJdHVuOWY0d0M5RXlJckNPaGxXR0ZJeFNzcEZGSDRPbXo0X0tZVkhtMVlCQlpHT2VGdjU1UlhIVUFOcW45YkpmQTluMW1kOUFVaXltYQ?oc=5",
+            "source": "Hostinger",
+            "published": "2026-07-16T15:25:43+00:00",
+            "guid": "CBMigAFBVV95cUxOQXlNYUVLY2xmdFhhUHF1NXd2SktxRFhBQy1yRlQ1Uk90R2ZPZHZLYmRHWHNJdHVuOWY0d0M5RXlJckNPaGxXR0ZJeFNzcEZGSDRPbXo0X0tZVkhtMVlCQlpHT2VGdjU1UlhIVUFOcW45YkpmQTluMW1kOUFVaXltYQ"
+          },
+          {
+            "title": "How to configure an Nginx reverse proxy server - TheServerSide.com",
+            "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxNZTlyVTctdnRkY0hNVTZoZU4xZFgyU29za0dqLUNXcWpmbU1kUDhoVVpiRVFQUi1DNl9xbUN2OF9uQmEwVks5eExMYkV0RUZHaFV5OWN6WkNnZ3NFWjl6ZzdUNHdHR2J3NTBfMmsya3F1QlBmcU1yVkxCa0dkZ2tUUGxNb0tHMXF2SmtRd3laZElCbF92SXphRlFnRnRyQ09mYVRDQWRhT19weVJGNlhUY0JVWHVfSl9DUURrNXZSc1dPSjJFeXNsVw?oc=5",
+            "source": "TheServerSide.com",
+            "published": "2026-05-10T07:00:00+00:00",
+            "guid": "CBMiyAFBVV95cUxNZTlyVTctdnRkY0hNVTZoZU4xZFgyU29za0dqLUNXcWpmbU1kUDhoVVpiRVFQUi1DNl9xbUN2OF9uQmEwVks5eExMYkV0RUZHaFV5OWN6WkNnZ3NFWjl6ZzdUNHdHR2J3NTBfMmsya3F1QlBmcU1yVkxCa0dkZ2tUUGxNb0tHMXF2SmtRd3laZElCbF92SXphRlFnRnRyQ09mYVRDQWRhT19weVJGNlhUY0JVWHVfSl9DUURrNXZSc1dPSjJFeXNsVw"
+          },
+          {
+            "title": "Scaling MCP adoption: Our reference architecture for simpler, safer and cheaper enterprise deployments of MCP - Cloudflare Blog",
+            "url": "https://news.google.com/rss/articles/CBMiVkFVX3lxTE1vclhVUkJGbkt6SmVlQ1RSX014MVFseWpPMmdERGZfVHJ2SEpHdUQ0TURyQnhrZHlxQ1JmaEQtd0lpdk5TLUN2akVLOGJuWUtaZjRoWW9R?oc=5",
+            "source": "Cloudflare Blog",
+            "published": "2026-04-14T07:00:00+00:00",
+            "guid": "CBMiVkFVX3lxTE1vclhVUkJGbkt6SmVlQ1RSX014MVFseWpPMmdERGZfVHJ2SEpHdUQ0TURyQnhrZHlxQ1JmaEQtd0lpdk5TLUN2akVLOGJuWUtaZjRoWW9R"
+          },
+          {
+            "title": "Streamline your Amazon EKS deployments with Gateway API support for AWS Load Balancer Controller and Amazon VPC Lattice - Amazon Web Services (AWS)",
+            "url": "https://news.google.com/rss/articles/CBMijgJBVV95cUxPZVQzblJpMnJ6NERKVWpxaW5oSnhMYUw0RGVUWk1PUGFmVkQxaDFPME12UFBBMlI0bDlsQUxIa0x1M0x6WUE2eTItM185SjRDRXRnU2FaQndGc0lybi04bmVYV3FvYXNDQ3ZETHdqNF9HTUtlelZCWVZUSnVCd0tJeUhBV0I1dzh4eUk2bllLTmhFbk9aUUVOSjZyTWVzdDBLM2N0NGhiLVBDOUMxdDhGWWZtZldQX25kZWVYb2RnRGhNRDVJVHZnSW5Wb1l3WG1ZTGc1WXNzQ1Z6OTB2MWZCcmw2aW1VSG9UcThQXzVSUlRKUmJ6NDlZWjVBaU41LVF1d3Z4NVpfTjRzVVRmbHc?oc=5",
+            "source": "Amazon Web Services (AWS)",
+            "published": "2026-03-31T07:00:00+00:00",
+            "guid": "CBMijgJBVV95cUxPZVQzblJpMnJ6NERKVWpxaW5oSnhMYUw0RGVUWk1PUGFmVkQxaDFPME12UFBBMlI0bDlsQUxIa0x1M0x6WUE2eTItM185SjRDRXRnU2FaQndGc0lybi04bmVYV3FvYXNDQ3ZETHdqNF9HTUtlelZCWVZUSnVCd0tJeUhBV0I1dzh4eUk2bllLTmhFbk9aUUVOSjZyTWVzdDBLM2N0NGhiLVBDOUMxdDhGWWZtZldQX25kZWVYb2RnRGhNRDVJVHZnSW5Wb1l3WG1ZTGc1WXNzQ1Z6OTB2MWZCcmw2aW1VSG9UcThQXzVSUlRKUmJ6NDlZWjVBaU41LVF1d3Z4NVpfTjRzVVRmbHc"
+          },
+          {
+            "title": "How to set up Nginx Proxy Manager with Docker Compose - TheServerSide.com",
+            "url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxOTktWdk9LallrN0FDUmRsTmd5bDl3OWthNmN3dmZ3R1FHWEpxTDhsVWNYc1lLX1AzMzFJa1dXUFZCcDlqamFQWTFQamo3OUhCd3dHaFFCcU5GM0E0aDM1Wmo3ZmRGZmlGS3hsckFzOC1BRkpIMTc5cHM4NklqcGlmZTRENm9pMkM0QllDaVpPYmlRM0dFUjFXUXEtUC1ISkVDTlBnM3NPcUNtdkh2M1JvZW5NOEFjU3lPQnNtQVBZaw?oc=5",
+            "source": "TheServerSide.com",
+            "published": "2026-03-27T07:00:00+00:00",
+            "guid": "CBMivwFBVV95cUxOTktWdk9LallrN0FDUmRsTmd5bDl3OWthNmN3dmZ3R1FHWEpxTDhsVWNYc1lLX1AzMzFJa1dXUFZCcDlqamFQWTFQamo3OUhCd3dHaFFCcU5GM0E0aDM1Wmo3ZmRGZmlGS3hsckFzOC1BRkpIMTc5cHM4NklqcGlmZTRENm9pMkM0QllDaVpPYmlRM0dFUjFXUXEtUC1ISkVDTlBnM3NPcUNtdkh2M1JvZW5NOEFjU3lPQnNtQVBZaw"
+          },
+          {
+            "title": "Wget Command: How to Use It + 12 Practical Examples - Hostinger",
+            "url": "https://news.google.com/rss/articles/CBMibkFVX3lxTE9Jakk0Yk13eU92RzRzRnU1R2w3SzItWXh6MGZSLTRGcnBTM2pTMVM0OGNBeXpKYUFzLVNycGlNMG95Y2FnUzhHdk9YMHgtbkRLU1A3VlBxTEdfeGdIRFZYVDNBWDRKVkpNSnQtSm1B?oc=5",
+            "source": "Hostinger",
+            "published": "2026-03-10T07:00:00+00:00",
+            "guid": "CBMibkFVX3lxTE9Jakk0Yk13eU92RzRzRnU1R2w3SzItWXh6MGZSLTRGcnBTM2pTMVM0OGNBeXpKYUFzLVNycGlNMG95Y2FnUzhHdk9YMHgtbkRLU1A3VlBxTEdfeGdIRFZYVDNBWDRKVkpNSnQtSm1B"
+          }
+        ]
+      },
+      "evidence": "12 recent article(s) across 1 feed(s)",
+      "created_at": "2026-10-11T08:44:39+00:00"
+    },
+    {
+      "module": "ssl",
+      "title": "SSL: certificate",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "subject_cn": [],
+        "issuer": [
+          "unknown"
+        ],
+        "issued": "",
+        "expires": "",
+        "self_signed": false
+      },
+      "evidence": "[] from ['unknown']",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "ssl",
+      "title": "SSL: subject alternative names",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "subject_alt_names": []
+      },
+      "evidence": "0 SAN(s)",
+      "created_at": "2026-10-11T08:44:38+00:00"
+    },
+    {
+      "module": "whois",
+      "title": "RDAP: registrar",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "registrar": null,
+        "registration": "1995-08-14T04:00:00Z"
+      },
+      "evidence": "None",
+      "created_at": "2026-10-11T08:44:40+00:00"
+    },
+    {
+      "module": "whois",
+      "title": "RDAP: registration dates",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "registration": "1995-08-14T04:00:00Z",
+        "expiration": "2027-08-13T04:00:00Z"
+      },
+      "evidence": "expires 2027-08-13T04:00:00Z",
+      "created_at": "2026-10-11T08:44:40+00:00"
+    },
+    {
+      "module": "whois",
+      "title": "RDAP: nameservers",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "nameservers": [
+          "ELLIOTT.NS.CLOUDFLARE.COM",
+          "HERA.NS.CLOUDFLARE.COM"
+        ]
+      },
+      "evidence": "ELLIOTT.NS.CLOUDFLARE.COM, HERA.NS.CLOUDFLARE.COM",
+      "created_at": "2026-10-11T08:44:40+00:00"
+    },
+    {
+      "module": "whois",
+      "title": "RDAP: status flags",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "flags": [
+          "client delete prohibited",
+          "client transfer prohibited",
+          "client update prohibited"
+        ]
+      },
+      "evidence": "client delete prohibited; client transfer prohibited; client update prohibited",
+      "created_at": "2026-10-11T08:44:40+00:00"
+    },
+    {
+      "module": "whois",
+      "title": "RDAP: DNSSEC signed",
+      "severity": "info",
+      "confidence": 0.9,
+      "data": {
+        "delegation_signed": true
+      },
+      "evidence": "delegation_signature=signed",
+      "created_at": "2026-10-11T08:44:40+00:00"
+    }
+  ],
+  "correlation": null,
+  "risk": {
+    "target": "Example Investigation",
+    "score": 0.0,
+    "rating": "low",
+    "categories": {
+      "TLS": {
+        "score": 0,
+        "rules": 0
+      },
+      "HEADERS": {
+        "score": 0,
+        "rules": 0
+      },
+      "DNS": {
+        "score": 0,
+        "rules": 0
+      },
+      "EXPOSURE": {
+        "score": 0,
+        "rules": 0
+      }
+    },
+    "rules": [],
+    "summary": [
+      "Overall risk: LOW (0/100). No contributing risk findings."
+    ]
+  },
+  "severity_counts": {
+    "critical": 0,
+    "high": 0,
+    "medium": 4,
+    "low": 10,
+    "info": 52
+  },
+  "module_counts": [
+    {
+      "module": "dns",
+      "count": 40
+    },
+    {
+      "module": "http",
+      "count": 18
+    },
+    {
+      "module": "whois",
+      "count": 5
+    },
+    {
+      "module": "ssl",
+      "count": 2
+    },
+    {
+      "module": "news",
+      "count": 1
+    }
+  ],
+  "timeline": [
+    {
+      "ts": 1773126000.0,
+      "kind": "news",
+      "label": "Wget Command: How to Use It + 12 Practical Examples - Hostinger"
+    },
+    {
+      "ts": 1774594800.0,
+      "kind": "news",
+      "label": "How to set up Nginx Proxy Manager with Docker Compose - TheServerSide.com"
+    },
+    {
+      "ts": 1774940400.0,
+      "kind": "news",
+      "label": "Streamline your Amazon EKS deployments with Gateway API support for AWS Load Balancer Controller and Amazon VPC Lattice - Amazon Web Services (AWS)"
+    },
+    {
+      "ts": 1776150000.0,
+      "kind": "news",
+      "label": "Scaling MCP adoption: Our reference architecture for simpler, safer and cheaper enterprise deployments of MCP - Cloudflare Blog"
+    },
+    {
+      "ts": 1778396400.0,
+      "kind": "news",
+      "label": "How to configure an Nginx reverse proxy server - TheServerSide.com"
+    },
+    {
+      "ts": 1784215543.0,
+      "kind": "news",
+      "label": "How to log in to WordPress dashboard: 3 simple methods - Hostinger"
+    },
+    {
+      "ts": 1785394800.0,
+      "kind": "news",
+      "label": "Adform compromised to serve crypto stealer via supply chain attack - DoublePulsar"
+    },
+    {
+      "ts": 1786172400.0,
+      "kind": "news",
+      "label": "I built my own Wayback Machine, and now I never lose web pages - MakeUseOf"
+    },
+    {
+      "ts": 1786431600.0,
+      "kind": "news",
+      "label": "3 AI Prompts for Google Ads - Practical Ecommerce"
+    },
+    {
+      "ts": 1790233200.0,
+      "kind": "news",
+      "label": "Placeholder third-party[.]com Referenced Across 1,700+ Repositories Now Serves Malicious Content - The Hacker News"
+    },
+    {
+      "ts": 1791264192.0,
+      "kind": "news",
+      "label": "Example.com redesign adds rotating languages, splits page to cut bot traffic - news.lavx.hu"
+    },
+    {
+      "ts": 1791364200.0,
+      "kind": "news",
+      "label": "example.com, famous for being 'almost completely empty,' has undergone a major redesign, now supporting six languages, and comes with a warning: 'Do not use it for testing or monitoring.' - GIGAZINE"
+    },
+    {
+      "ts": 1791708624.0,
+      "kind": "scan",
+      "label": "scan started"
+    }
+  ],
+  "executive_summary": [
+    "LOW overall risk (0/100) assessed for Example Investigation across 66 finding(s).",
+    "MEDIUM — HTTP: missing content-security-policy in http.",
+    "MEDIUM — HTTP: missing content-security-policy in http.",
+    "MEDIUM — HTTP: missing strict-transport-security in http."
+  ],
+  "evidence_refs": [
+    {
+      "module": "http",
+      "title": "HTTP: missing content-security-policy",
+      "evidence": "content-security-policy not sent over https"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing content-security-policy",
+      "evidence": "content-security-policy not sent over https"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing strict-transport-security",
+      "evidence": "strict-transport-security not sent over https"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing strict-transport-security",
+      "evidence": "strict-transport-security not sent over https"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing permissions-policy",
+      "evidence": "permissions-policy not sent over https"
+    },
+    {
+      "module": "http",
+      "title": "HTTP: missing permissions-policy",
+      "evidence": "permissions-policy not sent over https"
+    }
+  ],
+  "methodology": [
+    "Passive reconnaissance only: DNS, RDAP/WHOIS, certificate transparency, and HTTP fingerprints gathered from public sources.",
+    "Indicators originate from the configured module set and are de-duplicated by content hash before scoring.",
+    "Risk scores are deterministic weights over concrete findings; every contributing rule is listed in the risk overview."
+  ]
+}

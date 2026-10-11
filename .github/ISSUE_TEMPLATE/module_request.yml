@@ -1,0 +1,102 @@
+name: Module Request
+description: Request a new OSINT collector module
+title: "[MODULE]: "
+labels: ["module-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for requesting a new module! Please provide details about the data source and what it collects.
+
+  - type: input
+    id: module_name
+    attributes:
+      label: Proposed Module Name
+      description: Short, lowercase, kebab-case (e.g., `censys`, `shodan`, `greynoise`)
+      placeholder: "censys"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target_type
+    attributes:
+      label: Target Type(s)
+      description: What target types does this module apply to?
+      options:
+        - DOMAIN
+        - IP
+        - URL
+        - EMAIL
+        - USERNAME
+        - HASH
+        - FILE
+        - Multiple / Custom
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Module Description
+      description: What does this module collect? What API or data source does it use?
+      placeholder: "Censys Internet-wide scanning data: certificates, hosts, services. Requires Censys API key..."
+    validations:
+      required: true
+
+  - type: input
+    id: api_endpoint
+    attributes:
+      label: API Endpoint / Data Source
+      description: Base URL or description of the data source
+      placeholder: "https://search.censys.io/api/v2"
+
+  - type: dropdown
+    id: auth
+    attributes:
+      label: Authentication
+      options:
+        - No auth required (public)
+        - API key (header)
+        - API key (query param)
+        - OAuth / Bearer token
+        - Other / Custom
+    validations:
+      required: true
+
+  - type: textarea
+    id: data
+    attributes:
+      label: Expected Findings
+      description: What findings would this module produce? (title, severity, data fields)
+      placeholder: |
+        - "Censys: Host services" (INFO) - ports, services, banners
+        - "Censys: Certificate" (INFO) - cert details, SAN, expiry
+        - "Censys: Vulnerability" (MEDIUM/HIGH) - CVEs found
+
+  - type: textarea
+    id: rate_limits
+    attributes:
+      label: Rate Limits / Quotas
+      description: Known rate limits, quotas, or costs
+      placeholder: "250 queries/month free tier; 1 req/sec rate limit"
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References / Documentation
+      description: Links to API docs, similar tools, or prior art
+      placeholder: "https://search.censys.io/api/"
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: This module only uses publicly available data or authorized APIs
+          required: true
+        - label: The data source allows automated access (check ToS)
+          required: true
+        - label: I have checked that a similar module doesn't already exist
+          required: true
+        - label: I'm willing to contribute the implementation (or sponsor it)
+          required: false

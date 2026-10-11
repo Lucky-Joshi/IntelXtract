@@ -1,6 +1,6 @@
 [project]
 name = "intelxtract"
-version = "0.1.0a0"
+version = "1.0.0"
 description = "AI-powered OSINT automation & intelligence platform"
 readme = "README.md"
 license = {text = "GPL-3.0-or-later"}

@@ -1,0 +1,131 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python 3.13
+        run: uv python install 3.13
+
+      - name: Install Qt system libraries (for GUI tests)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libegl1 libgl1 libxkbcommon0 libdbus-1-3 libfontconfig1 libglib2.0-0
+
+      - name: Install WeasyPrint system dependencies (for PDF reports)
+        run: |
+          sudo apt-get install -y --no-install-recommends \
+            libcairo2 libpango-1.0-0 libpangocairo-1.0-0 \
+            libgdk-pixbuf-2.0-0 libffi8 shared-mime-info
+
+      - name: Create venv and install dependencies
+        run: |
+          uv venv .venv --python 3.13
+          uv pip install -r requirements.txt -r requirements-dev.txt
+          uv pip install -e ".[build]"
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Run quality gate
+        run: |
+          ruff check .
+          black --check .
+          mypy .
+          pytest -m "not integration" --cov --cov-report=term --cov-report=html:htmlcov
+
+      - name: Build wheel and sdist
+        run: |
+          python -m build --wheel --sdist --outdir dist
+          ls -la dist/
+
+      - name: Build CLI binary (PyInstaller)
+        run: |
+          pyinstaller --clean --distpath dist/cli --workpath build/cli scripts/pyinstaller/intelxtract-cli.spec
+          ls -la dist/cli/
+
+      - name: Build GUI binary (PyInstaller)
+        run: |
+          pyinstaller --clean --distpath dist/gui --workpath build/gui scripts/pyinstaller/intelxtract-gui.spec
+          ls -la dist/gui/
+
+      - name: Test CLI binary
+        run: |
+          dist/cli/intelxtract --version
+          dist/cli/intelxtract doctor
+          dist/cli/intelxtract scan example.com --mode quick --format json
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum $(find . -type f \( -name "*.whl" -o -name "*.tar.gz" -o -name "intelxtract*" -o -name "intelxtract-gui*" \)) > CHECKSUMS.sha256
+          sha512sum $(find . -type f \( -name "*.whl" -o -name "*.tar.gz" -o -name "intelxtract*" -o -name "intelxtract-gui*" \)) > CHECKSUMS.sha512
+          cat CHECKSUMS.sha256
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "IntelXtract ${{ github.ref_name }}"
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          draft: true
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/cli/intelxtract
+            dist/gui/intelxtract-gui
+            dist/CHECKSUMS.sha256
+            dist/CHECKSUMS.sha512
+          body: |
+            ## IntelXtract ${{ github.ref_name }}
+
+            ### Installation
+
+            **Python Package (PyPI):**
+            ```bash
+            pip install intelxtract==${{ github.ref_name }}
+            ```
+
+            **Pre-built Binaries:**
+            - `intelxtract` — CLI binary (Linux x86_64)
+            - `intelxtract-gui` — GUI binary (Linux x86_64)
+
+            Verify checksums:
+            ```bash
+            sha256sum -c CHECKSUMS.sha256
+            ```
+
+            ### Quick Start
+            ```bash
+            # CLI
+            intelxtract scan example.com --mode deep
+
+            # GUI
+            intelxtract-gui
+            ```
+
+            ### Changes
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+
+            ### Full Changelog
+            https://github.com/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

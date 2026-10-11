@@ -1,0 +1,122 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[BUG]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please fill out the sections below so we can reproduce and fix it.
+
+  - type: input
+    id: version
+    attributes:
+      label: IntelXtract Version
+      description: Run `intelxtract --version` or `intelxtract-gui --version`
+      placeholder: "0.1.0a0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: interface
+    attributes:
+      label: Interface
+      description: Where did you encounter the bug?
+      options:
+        - CLI (intelxtract)
+        - GUI (intelxtract-gui)
+        - Both
+        - Docker
+        - Frozen binary (PyInstaller)
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: OS and version (e.g., Ubuntu 24.04, macOS 15.0, Windows 11)
+      placeholder: "Ubuntu 24.04 LTS"
+    validations:
+      required: true
+
+  - type: input
+    id: python
+    attributes:
+      label: Python Version
+      description: Run `python --version`
+      placeholder: "3.13.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Clear and concise description of the bug
+      placeholder: "When I run `intelxtract scan example.com --mode deep`, the scan hangs at the SSL module..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Minimal steps to reproduce the issue
+      placeholder: |
+        1. Run `intelxtract scan example.com --mode deep`
+        2. Wait for SSL module
+        3. Observe hang
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+      placeholder: "The scan should complete within 30 seconds and produce findings..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: "The scan hangs indefinitely at 'SSL: running'..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Error Output
+      description: Paste relevant logs, stack traces, or error messages (use `INTELXTRACT_LOG_LEVEL=DEBUG`)
+      placeholder: |
+        ```
+        2026-01-15 10:30:45 ERROR intelxtract.core.engine [scan=abc123] module ssl failed: ...
+        ```
+      render: shell
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant Configuration
+      description: Any non-default config values (from `intelxtract config list` or config file)
+      placeholder: |
+        scan.max_workers = 4
+        network.request_timeout = 30.0
+      render: toml
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues for duplicates
+          required: true
+        - label: I have run `intelxtract doctor` and all checks pass
+          required: true
+        - label: I am using the latest version from main branch
+          required: true

@@ -77,7 +77,7 @@ sub-phases that are small enough to implement and verify independently.
 | 26    | Testing                    | I         | L    | [x]    |
 | 27    | Documentation              | I         | M    | [x]    |
 | 28    | Packaging                  | I         | M    | [x]    |
-| 29    | Version 1.0 Release        | I         | M    | [ ]    |
+| 29    | Version 1.0 Release        | I         | M    | [x]    |
 
 Size: S < 1 day · M 1–3 days · L 3–7 days · XL > 7 days.
 
@@ -765,17 +765,17 @@ only the docs; a developer can add a module without reading engine source.
 
 **Objective:** Ship a stable 1.0.
 
-- [ ] S29.1 Release checklist — stable CLI + GUI, all core modules, reports,
+- [x] S29.1 Release checklist — stable CLI + GUI, all core modules, reports,
       plugin examples, no critical open issues
-- [ ] S29.2 CI/CD — release workflow: tag → build artifacts → draft GitHub
+- [x] S29.2 CI/CD — release workflow: tag → build artifacts → draft GitHub
       release
-- [ ] S29.3 Community files — issue templates (bug/feature/module request),
+- [x] S29.3 Community files — issue templates (bug/feature/module request),
       PR template, `CODEOWNERS`
-- [ ] S29.4 Example reports — sample outputs committed under `examples/`
+- [x] S29.4 Example reports — sample outputs committed under `examples/`
       (sanitized targets)
-- [ ] S29.5 Release notes — CHANGELOG 1.0.0 entry, migration notes, known
+- [x] S29.5 Release notes — CHANGELOG 1.0.0 entry, migration notes, known
       limitations, ethical-use statement
-- [ ] S29.6 Tag `v1.0.0` (tag only; pushing is user-owned)
+- [x] S29.6 Tag `v1.0.0` (tag only; pushing is user-owned)
 
 **Done criteria:** Fresh install from release artifacts passes `doctor` and
 completes a deep scan with HTML + PDF reports.

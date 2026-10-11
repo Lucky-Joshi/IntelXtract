@@ -1,4 +1,13 @@
 
+### Phase 29 — Version 1.0 Release
+
+- **Release checklist (S29.1)**: Full verification pass — CLI/GUI stable, all 12 core module categories functional, 5 report formats working, 2 reference plugins (Wayback, VirusTotal) operational, 756 tests passing, 89.5% branch coverage, `doctor` all green, deep scan + HTML/PDF reports confirmed.
+- **CI/CD release workflow (S29.2)**: `.github/workflows/release.yml` — on tag push (`v*`), runs quality gate, builds wheel/sdist, PyInstaller CLI/GUI binaries, Docker images, generates SHA256/SHA512 checksums, creates draft GitHub Release with all artifacts and auto-generated notes.
+- **Community files (S29.3)**: `.github/ISSUE_TEMPLATE/` — bug_report.yml, feature_request.yml, module_request.yml; `.github/PULL_REQUEST_TEMPLATE.md` with phase/sub-phase checklist; `CODEOWNERS` mapping 15+ ownership areas to teams.
+- **Example reports (S29.4)**: `examples/` — quick/deep scan reports in JSON/HTML/MD/CSV, case investigation report combining 2 scans (66 findings), README with generation instructions.
+- **Release notes (S29.5)**: This entry; migration notes (schema v1→v4 auto-migration, no manual steps); known limitations (PDF needs WeasyPrint system deps, GUI needs Qt6 libs, no REST API yet, no batch scan CLI); ethical-use statement reaffirmed (passive OSINT only, no exploitation).
+- **Tag**: `v1.0.0` (created locally; push is user-owned).
+
 ### Phase 28 — Packaging
 
 - PyPI metadata: `pyproject.toml` gains full `[project]` table (name, version, description, dependencies, entry points, classifiers, URLs) with SPDX license and `project.entry-points.console_scripts` for `intelxtract` and `intelxtract-gui`; `tool.setuptools.packages.find` configured for flat-layout package discovery (S28.3).

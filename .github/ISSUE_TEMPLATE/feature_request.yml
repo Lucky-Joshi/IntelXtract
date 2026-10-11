@@ -1,0 +1,77 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[FEATURE]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please describe your idea clearly so we can evaluate it.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of IntelXtract would this affect?
+      options:
+        - CLI
+        - GUI
+        - Core Engine / Scan Pipeline
+        - Modules (Domain, IP, Email, etc.)
+        - Correlation / Risk Engine
+        - Reports (HTML, PDF, JSON, CSV, MD)
+        - Scheduler / Recurring Scans
+        - Case Management
+        - Plugins / Plugin SDK
+        - Database / Migrations
+        - Configuration / Vault
+        - Performance
+        - Packaging / Installation
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this solve? What's the use case?
+      placeholder: "When scanning large organizations, I need to correlate findings across multiple domains..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How would you like this to work?
+      placeholder: "Add a `--batch` flag to scan that accepts a file with targets, runs them in parallel, and produces a combined report..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Other approaches you've thought about
+      placeholder: "Could also use the scheduler with a custom script, but that's less convenient..."
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context, mockups, or references
+      placeholder: "Similar to how `nmap -iL` works..."
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and discussions for duplicates
+          required: true
+        - label: This aligns with IntelXtract's scope (passive OSINT, authorized APIs only)
+          required: true
+        - label: I'm willing to help implement this (code, tests, docs)
+          required: false

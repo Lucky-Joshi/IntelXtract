@@ -2,7 +2,7 @@
 
 from enum import StrEnum
 
-VERSION = "0.1.0a0"
+VERSION = "1.0.0"
 APP_NAME = "IntelXtract"
 PLUGIN_API_VERSION = 1
 

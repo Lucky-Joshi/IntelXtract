@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>IntelXtract — example.com</title>
+
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; background: #ffffff; color: #24292f;
+      font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.5; }
+  .page { max-width: 860px; margin: 0 auto; padding: 28px 22px 60px; }
+  header.top { background: #1f6feb; color: #fff; padding: 22px 22px 18px; }
+  header.top h1 { margin: 0 0 4px; font-size: 21px; }
+  header.top .tagline { opacity: .92; font-size: 13px; }
+  header.top .meta { margin-top: 10px; font-size: 12px; }
+  header.top .meta strong { opacity: .9; }
+  section.card { background: #f6f8fa; border: 1px solid #d0d7de;
+      border-radius: 10px; padding: 16px 18px; margin: 16px 0; }
+  h2 { font-size: 15px; margin: 0 0 10px; letter-spacing: .02em; text-transform: uppercase; color: #24292f; }
+  ul { padding-left: 20px; margin: 6px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  th, td { border: 1px solid #d0d7de; padding: 5px 7px; text-align: left; vertical-align: top; }
+  th { background: #dbeafe; color: #24292f; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  .chip { display: inline-block; border-radius: 12px; padding: 3px 11px; font-weight: 700; color: #fff; font-size: 13px; }
+  .chip.critical { background: #c62828; } .chip.high { background: #ef6c00; }
+  .chip.medium { background: #f9a825; } .chip.low { background: #42a5f5; color: #fff; }
+  .severity.critical { color: #c62828; } .severity.high { color: #ef6c00; }
+  .severity.medium { color: #f9a825; } .severity.low { color: #1e88e5; }
+  .score-bar { height: 10px; background: #e9ecef; border-radius: 6px; overflow: hidden; margin: 4px 0 12px; }
+  .score-bar span { display: block; height: 100%; background: #1f6feb; }
+  .score-row { display: flex; justify-content: space-between; font-size: 12px; }
+  footer { color: #6a737d; font-size: 11px; margin-top: 26px; text-align: center; }
+  .timeline { list-style: none; padding-left: 4px; }
+  .timeline li::before { content: "◆ "; color: #1f6feb; }
+</style>
+
+</head>
+<body>
+<header class="top">
+  <h1>Tactical OSINT reconnaissance report</h1>
+  <div class="tagline">IntelXtract v0.1.0a0</div>
+  <div class="meta">
+    <strong>Target:</strong> example.com
+    &nbsp;·&nbsp; <strong>Type:</strong> domain
+    &nbsp;·&nbsp; <strong>Mode:</strong> deep
+  </div>
+</header>
+
+<div class="page">
+  <section class="card">
+    <h2>Executive summary</h2>
+    <p>
+      
+      <span class="chip low">LOW risk</span>
+    </p>
+    <ul>
+      <li>LOW overall risk (0/100) assessed for example.com across 37 finding(s).</li><li>MEDIUM — HTTP: missing content-security-policy in http.</li><li>MEDIUM — HTTP: missing strict-transport-security in http.</li><li>LOW — HTTP: missing permissions-policy in http.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Risk overview</h2>
+    
+      <div class="score-row"><span>TLS</span><span>0.0 — 0 rule(s)</span></div>
+      <div class="score-bar"><span style="width: 0.0%"></span></div>
+    
+      <div class="score-row"><span>HEADERS</span><span>0.0 — 0 rule(s)</span></div>
+      <div class="score-bar"><span style="width: 0.0%"></span></div>
+    
+      <div class="score-row"><span>DNS</span><span>0.0 — 0 rule(s)</span></div>
+      <div class="score-bar"><span style="width: 0.0%"></span></div>
+    
+      <div class="score-row"><span>EXPOSURE</span><span>0.0 — 0 rule(s)</span></div>
+      <div class="score-bar"><span style="width: 0.0%"></span></div>
+    
+    
+  </section>
+
+  <section class="card">
+    <h2>Findings (37)</h2>
+    <table>
+      <tr><th>severity</th><th>module</th><th>title</th><th>evidence</th></tr>
+      
+        
+      
+        
+      
+        
+        <tr>
+          <td class="severity medium">medium</td>
+          <td>http</td>
+          <td>HTTP: missing strict-transport-security</td>
+          <td>strict-transport-security not sent over https</td>
+        </tr>
+        
+        <tr>
+          <td class="severity medium">medium</td>
+          <td>http</td>
+          <td>HTTP: missing content-security-policy</td>
+          <td>content-security-policy not sent over https</td>
+        </tr>
+        
+      
+        
+        <tr>
+          <td class="severity low">low</td>
+          <td>http</td>
+          <td>HTTP: no robots.txt</td>
+          <td>HTTP 404</td>
+        </tr>
+        
+        <tr>
+          <td class="severity low">low</td>
+          <td>http</td>
+          <td>HTTP: no sitemap.xml</td>
+          <td>HTTP 404</td>
+        </tr>
+        
+        <tr>
+          <td class="severity low">low</td>
+          <td>http</td>
+          <td>HTTP: missing x-frame-options</td>
+          <td>x-frame-options not sent over https</td>
+        </tr>
+        
+        <tr>
+          <td class="severity low">low</td>
+          <td>http</td>
+          <td>HTTP: missing referrer-policy</td>
+          <td>referrer-policy not sent over https</td>
+        </tr>
+        
+        <tr>
+          <td class="severity low">low</td>
+          <td>http</td>
+          <td>HTTP: missing permissions-policy</td>
+          <td>permissions-policy not sent over https</td>
+        </tr>
+        
+      
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: A records</td>
+          <td>2 record(s)</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: AAAA records</td>
+          <td>2 record(s)</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: NS records</td>
+          <td>2 record(s)</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: MX records</td>
+          <td>1 record(s)</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: TXT records</td>
+          <td>2 record(s)</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: SPF record</td>
+          <td>&#34;v=spf1 -all&#34;&#34;_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: DMARC record</td>
+          <td>&#34;v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: DKIM selector &#39;default&#39;</td>
+          <td>&#34;v=DKIM1; p=&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: DKIM selector &#39;google&#39;</td>
+          <td>&#34;v=DKIM1; p=&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: DKIM selector &#39;selector1&#39;</td>
+          <td>&#34;v=DKIM1; p=&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: DKIM selector &#39;selector2&#39;</td>
+          <td>&#34;v=DKIM1; p=&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: DKIM selector &#39;selector3&#39;</td>
+          <td>&#34;v=DKIM1; p=&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: DKIM selector &#39;dkim&#39;</td>
+          <td>&#34;v=DKIM1; p=&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: DKIM selector &#39;mail&#39;</td>
+          <td>&#34;v=DKIM1; p=&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: DKIM selector &#39;s1&#39;</td>
+          <td>&#34;v=DKIM1; p=&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: DKIM selector &#39;s2&#39;</td>
+          <td>&#34;v=DKIM1; p=&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: DKIM selector &#39;s3&#39;</td>
+          <td>&#34;v=DKIM1; p=&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: DKIM selector &#39;2020&#39;</td>
+          <td>&#34;v=DKIM1; p=&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: DKIM selector &#39;2021&#39;</td>
+          <td>&#34;v=DKIM1; p=&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>dns</td>
+          <td>DNS: DKIM selector &#39;pacman&#39;</td>
+          <td>&#34;v=DKIM1; p=&#34;</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>http</td>
+          <td>HTTP: https responds</td>
+          <td>HTTP 200 at https://example.com/</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>http</td>
+          <td>HTTP: http responds</td>
+          <td>HTTP 200 at http://example.com/</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>news</td>
+          <td>News: timeline</td>
+          <td>12 recent article(s) across 1 feed(s)</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>ssl</td>
+          <td>SSL: certificate</td>
+          <td>[] from [&#39;unknown&#39;]</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>ssl</td>
+          <td>SSL: subject alternative names</td>
+          <td>0 SAN(s)</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>whois</td>
+          <td>RDAP: registrar</td>
+          <td>None</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>whois</td>
+          <td>RDAP: registration dates</td>
+          <td>expires 2027-08-13T04:00:00Z</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>whois</td>
+          <td>RDAP: nameservers</td>
+          <td>ELLIOTT.NS.CLOUDFLARE.COM, HERA.NS.CLOUDFLARE.COM</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>whois</td>
+          <td>RDAP: status flags</td>
+          <td>client delete prohibited; client transfer prohibited; client update prohibited</td>
+        </tr>
+        
+        <tr>
+          <td class="severity info">info</td>
+          <td>whois</td>
+          <td>RDAP: DNSSEC signed</td>
+          <td>delegation_signature=signed</td>
+        </tr>
+        
+      
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Modules</h2>
+    <table>
+      <tr><th>module</th><th>findings</th></tr>
+      
+        <tr><td>dns</td><td>20</td></tr>
+      
+        <tr><td>http</td><td>9</td></tr>
+      
+        <tr><td>whois</td><td>5</td></tr>
+      
+        <tr><td>ssl</td><td>2</td></tr>
+      
+        <tr><td>news</td><td>1</td></tr>
+      
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Timeline</h2>
+    
+      <ul class="timeline">
+        
+          <li><strong>1773126000</strong> — Wget Command: How to Use It + 12 Practical Examples - Hostinger</li>
+        
+          <li><strong>1774594800</strong> — How to set up Nginx Proxy Manager with Docker Compose - TheServerSide.com</li>
+        
+          <li><strong>1774940400</strong> — Streamline your Amazon EKS deployments with Gateway API support for AWS Load Balancer Controller and Amazon VPC Lattice - Amazon Web Services (AWS)</li>
+        
+          <li><strong>1776150000</strong> — Scaling MCP adoption: Our reference architecture for simpler, safer and cheaper enterprise deployments of MCP - Cloudflare Blog</li>
+        
+          <li><strong>1778396400</strong> — How to configure an Nginx reverse proxy server - TheServerSide.com</li>
+        
+          <li><strong>1784215543</strong> — How to log in to WordPress dashboard: 3 simple methods - Hostinger</li>
+        
+          <li><strong>1785394800</strong> — Adform compromised to serve crypto stealer via supply chain attack - DoublePulsar</li>
+        
+          <li><strong>1786172400</strong> — I built my own Wayback Machine, and now I never lose web pages - MakeUseOf</li>
+        
+          <li><strong>1786431600</strong> — 3 AI Prompts for Google Ads - Practical Ecommerce</li>
+        
+          <li><strong>1790233200</strong> — Placeholder third-party[.]com Referenced Across 1,700+ Repositories Now Serves Malicious Content - The Hacker News</li>
+        
+          <li><strong>1791264192</strong> — Example.com redesign adds rotating languages, splits page to cut bot traffic - news.lavx.hu</li>
+        
+          <li><strong>1791364200</strong> — example.com, famous for being &#39;almost completely empty,&#39; has undergone a major redesign, now supporting six languages, and comes with a warning: &#39;Do not use it for testing or monitoring.&#39; - GIGAZINE</li>
+        
+          <li><strong>1791708278</strong> — scan started</li>
+        
+          <li><strong>1791708308</strong> — scan finished</li>
+        
+      </ul>
+    
+  </section>
+
+  <section class="card">
+    <h2>Methodology &amp; evidence</h2>
+    <ul><li>Passive reconnaissance only: DNS, RDAP/WHOIS, certificate transparency, and HTTP fingerprints gathered from public sources.</li><li>Indicators originate from the configured module set and are de-duplicated by content hash before scoring.</li><li>Risk scores are deterministic weights over concrete findings; every contributing rule is listed in the risk overview.</li></ul>
+    
+      <table>
+        <tr><th>module</th><th>title</th><th>evidence</th></tr>
+        
+          <tr><td>http</td><td>HTTP: missing content-security-policy</td><td>content-security-policy not sent over https</td></tr>
+        
+          <tr><td>http</td><td>HTTP: missing strict-transport-security</td><td>strict-transport-security not sent over https</td></tr>
+        
+          <tr><td>http</td><td>HTTP: missing permissions-policy</td><td>permissions-policy not sent over https</td></tr>
+        
+          <tr><td>http</td><td>HTTP: missing referrer-policy</td><td>referrer-policy not sent over https</td></tr>
+        
+          <tr><td>http</td><td>HTTP: missing x-frame-options</td><td>x-frame-options not sent over https</td></tr>
+        
+          <tr><td>http</td><td>HTTP: no robots.txt</td><td>HTTP 404</td></tr>
+        
+      </table>
+    
+  </section>
+
+  <footer>
+    Generated 2026-10-11T14:20:19 · IntelXtract v0.1.0a0
+  </footer>
+</div>
+</body>
+</html>
