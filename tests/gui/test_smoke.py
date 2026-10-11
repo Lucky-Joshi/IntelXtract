@@ -82,6 +82,7 @@ def test_window_launches_and_every_page_opens(make_window: Any) -> None:
         "history",
         "cases",
         "schedules",
+        "assistant",
         "plugins",
         "api_manager",
         "settings",
@@ -292,3 +293,52 @@ def test_cases_page_create_note_attach(make_window: Any) -> None:
     cases.name_input.setText("Investigation One")
     cases._create()
     assert "already exists" in cases._status.text()
+
+
+class MiniProvider:
+    """Opt-in assistant provider that never touches the network."""
+
+    name = "mini"
+
+    def enabled(self) -> bool:
+        return True
+
+    async def complete(self, messages: list[Any]) -> Any:
+        from assistant.providers import AssistantResponse
+
+        return AssistantResponse(
+            text="Target appears low risk.", provider=self.name, model="mini-1"
+        )
+
+
+def test_assistant_page_disabled_by_default(make_window: Any) -> None:
+    window = make_window()
+    window.switch_page("assistant")
+    page = window.page("assistant")
+    assert page.ask_button.isEnabled() is False
+    assert "disabled" in page.banner.text().lower()
+
+
+def test_assistant_page_enabled_with_fake_provider(
+    make_window: Any, monkeypatch: Any
+) -> None:
+    provider = MiniProvider()
+    monkeypatch.setattr(
+        "assistant.service.build_default_provider", lambda config, http=None: provider
+    )
+    window = make_window(modules=[DummyModule()])
+    window.switch_page("quick_scan")
+    quick = window.page("quick_scan")
+    quick.target_input.setText("example.com")
+    spy = QSignalSpy(window.bridge.scan_finished)
+    quick.run_button.click()
+    assert wait_spy(spy)
+
+    window.switch_page("assistant")
+    assistant = window.page("assistant")
+    assert assistant.ask_button.isEnabled() is True
+    assistant.scan_input.setText("1")
+    assistant.ask_button.click()
+    assert wait_for(lambda: assistant.output.toPlainText() != "")
+    assert "Target appears low risk." in assistant.output.toPlainText()
+    assert "not a scan finding" in assistant.output_label.text()

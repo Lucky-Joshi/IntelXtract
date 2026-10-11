@@ -28,6 +28,8 @@ from rich.progress import (
 )
 from rich.table import Table
 
+from assistant import Assistant
+from assistant.service import DISABLED_WARNING
 from core.config import Config, load_config
 from core.constants import VERSION, ScanMode
 from core.engine import ModuleRun, ScanEngine, ScanResult
@@ -57,7 +59,7 @@ from database.persistence import (
 )
 from database.repositories import CaseRecord, Repositories, ScanRecord
 from modules.registry import ModuleRegistry
-from reports import build_report, export_report
+from reports import ReportModel, build_report, export_report
 
 console = Console()
 err_console = Console(stderr=True)
@@ -178,6 +180,37 @@ async def _resolve_scan(repos: Repositories, ref: str) -> ScanRecord | None:
     if ref.isdigit():
         return await repos.scans.get(int(ref))
     return await repos.scans.get_by_uuid(ref)
+
+
+async def _scan_report_model(repos: Repositories, scan: ScanRecord) -> ReportModel:
+    """Build a :class:`ReportModel` from a persisted scan."""
+    target = await repos.targets.get(scan.target_id)
+    findings = await repos.findings.list_for_scan(scan.id)
+    scan_dict = {
+        "id": scan.id,
+        "uuid": scan.uuid,
+        "mode": scan.mode,
+        "status": scan.status,
+        "started_at": scan.started_at,
+        "finished_at": scan.finished_at,
+        "duration": scan.duration,
+        "error": scan.error,
+        "runs": scan.runs,
+    }
+    target_dict = {"value": target.value, "type": target.type} if target else None
+    findings_dicts = [
+        {
+            "module": finding.module,
+            "title": finding.title,
+            "severity": finding.severity,
+            "confidence": finding.confidence,
+            "data": finding.data,
+            "evidence": finding.evidence,
+            "created_at": finding.created_at,
+        }
+        for finding in findings
+    ]
+    return build_report(scan_dict, target_dict, findings_dicts)
 
 
 def _flatten(data: dict[str, Any], prefix: str = "") -> dict[str, Any]:
@@ -400,37 +433,7 @@ async def _report(
         scan = await _resolve_scan(repos, scan_id)
         if scan is None:
             _fail(f"scan not found: {scan_id}")
-        target = await repos.targets.get(scan.target_id)
-        findings = await repos.findings.list_for_scan(scan.id)
-        payload: dict[str, Any] = {
-            "scan": {
-                "id": scan.id,
-                "uuid": scan.uuid,
-                "mode": scan.mode,
-                "status": scan.status,
-                "started_at": scan.started_at,
-                "finished_at": scan.finished_at,
-                "duration": scan.duration,
-                "error": scan.error,
-                "runs": scan.runs,
-            },
-            "target": (
-                {"value": target.value, "type": target.type} if target else None
-            ),
-            "findings": [
-                {
-                    "module": finding.module,
-                    "title": finding.title,
-                    "severity": finding.severity,
-                    "confidence": finding.confidence,
-                    "data": finding.data,
-                    "evidence": finding.evidence,
-                    "created_at": finding.created_at,
-                }
-                for finding in findings
-            ],
-        }
-        model = build_report(payload["scan"], payload["target"], payload["findings"])
+        model = await _scan_report_model(repos, scan)
         exported = await asyncio.to_thread(export_report, model, output_format)
         if exported.warning:
             err_console.print(f"[yellow]warning:[/yellow] {exported.warning}")
@@ -449,6 +452,98 @@ async def _report(
         )
     finally:
         await db.close()
+
+
+# ---------------------------------------------------------------------------
+# explain (optional AI assistant)
+# ---------------------------------------------------------------------------
+
+
+@app.command()
+def explain(
+    scan_id: str = typer.Argument(..., help="Scan id (database id or uuid)."),
+    kind: str = typer.Option(
+        "summary",
+        "--kind",
+        "-k",
+        help="What to ask: summary|next-steps|finding|compare.",
+    ),
+    finding_id: int | None = typer.Option(
+        None, "--finding", help="Finding id (required with --kind finding)."
+    ),
+    compare: str | None = typer.Option(
+        None, "--compare", help="Second scan id/uuid (required with --kind compare)."
+    ),
+    as_json: bool = typer.Option(False, "--json", help="Emit the answer as JSON."),
+    db: str | None = typer.Option(None, "--db", help="Override the database path."),
+) -> None:
+    """Ask the optional AI assistant about a scan (opt-in; off by default)."""
+    asyncio.run(_explain(scan_id, kind, finding_id, compare, as_json, db))
+
+
+async def _explain(
+    scan_id: str,
+    kind: str,
+    finding_id: int | None,
+    compare: str | None,
+    as_json: bool,
+    db_override: str | None,
+) -> None:
+    cfg = _load_config(db_override)
+    db = await _open_db(cfg)
+    try:
+        repos = Repositories(db)
+        scan = await _resolve_scan(repos, scan_id)
+        if scan is None:
+            _fail(f"scan not found: {scan_id}")
+        assistant = Assistant(cfg)
+        if not assistant.enabled:
+            err_console.print(f"[yellow]assistant:[/yellow] {DISABLED_WARNING}")
+            raise typer.Exit(code=1)
+        model = await _scan_report_model(repos, scan)
+        normalized = kind.strip().lower().replace("_", "-")
+        if normalized in ("", "summary", "summarise", "summarize"):
+            answer = await assistant.summarize(model)
+        elif normalized in ("next", "next-steps", "steps"):
+            answer = await assistant.suggest_next_steps(model)
+        elif normalized in ("finding", "explain"):
+            if finding_id is None:
+                _fail("--kind finding requires --finding ID")
+            finding = await repos.findings.get(finding_id)
+            if finding is None:
+                _fail(f"finding not found: {finding_id}")
+            answer = await assistant.explain(finding, model=model)
+        elif normalized == "compare":
+            if compare is None:
+                _fail("--kind compare requires --compare SCAN")
+            other = await _resolve_scan(repos, compare)
+            if other is None:
+                _fail(f"scan not found: {compare}")
+            first, second = (scan, other) if scan.id <= other.id else (other, scan)
+            before = await _scan_report_model(repos, first)
+            after = await _scan_report_model(repos, second)
+            answer = await assistant.compare(before, after)
+        else:
+            _fail(f"unknown kind: {kind!r} (use summary|next-steps|finding|compare)")
+        if as_json:
+            console.print_json(data=answer.to_dict())
+        else:
+            _render_answer(answer)
+    finally:
+        await db.close()
+
+
+def _render_answer(answer: Any) -> None:
+    """Print an assistant answer with an AI-generated label."""
+    if answer.warning:
+        err_console.print(f"[yellow]assistant:[/yellow] {answer.warning}")
+    if not answer.text:
+        return
+    console.print(
+        f"[bold]{answer.label}[/bold] — not a scan finding; verify independently."
+    )
+    console.print(f"[dim]provider={answer.provider} model={answer.model or '-'}[/dim]")
+    console.print(answer.text)
 
 
 # ---------------------------------------------------------------------------

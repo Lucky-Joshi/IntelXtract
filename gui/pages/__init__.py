@@ -2,6 +2,7 @@
 
 from gui.pages.about import AboutPage
 from gui.pages.api_manager import ApiManagerPage
+from gui.pages.assistant import AssistantPage
 from gui.pages.base import Page
 from gui.pages.cases import CasesPage
 from gui.pages.dashboard import DashboardPage
@@ -17,6 +18,7 @@ from gui.pages.settings import SettingsPage
 __all__ = [
     "AboutPage",
     "ApiManagerPage",
+    "AssistantPage",
     "CasesPage",
     "DashboardPage",
     "DeepScanPage",

@@ -71,7 +71,7 @@ sub-phases that are small enough to implement and verify independently.
 | 20    | Plugin SDK                 | G         | M    | [x]    |
 | 21    | Scheduler                  | G         | M    | [ ]    |
 | 22    | Case Management            | H         | M    | [x]    |
-| 23    | AI Assistant (optional)    | H         | S    | [ ]    |
+| 23    | AI Assistant (optional)    | H         | S    | [x]    |
 | 24    | Settings                   | I         | M    | [ ]    |
 | 25    | Performance                | I         | M    | [ ]    |
 | 26    | Testing                    | I         | L    | [ ]    |
@@ -632,15 +632,15 @@ exported as a combined report.
 
 **Objective:** Grounded, optional assistance — never fabricates.
 
-- [ ] S23.1 Provider abstraction — pluggable backends: disabled (default),
+- [x] S23.1 Provider abstraction — pluggable backends: disabled (default),
       any OpenAI-compatible endpoint (user-supplied URL + key); no data
       leaves the machine unless the user enables it (disclosed in UI)
-- [ ] S23.2 Prompt templates — summarize report, explain a finding, compare
+- [x] S23.2 Prompt templates — summarize report, explain a finding, compare
       two scans, suggest defensive next steps; prompts include raw evidence
       and an explicit "do not invent facts" constraint
-- [ ] S23.3 Integration — CLI `intelxtract explain <scan>` + GUI assistant
+- [x] S23.3 Integration — CLI `intelxtract explain <scan>` + GUI assistant
       panel; every output labeled AI-generated and kept separate from findings
-- [ ] S23.4 Tests — mocked provider, prompt assembly, refusal/empty paths
+- [x] S23.4 Tests — mocked provider, prompt assembly, refusal/empty paths
 
 **Done criteria:** Feature is fully opt-in; disabled-by-default verified;
 mocked tests green.

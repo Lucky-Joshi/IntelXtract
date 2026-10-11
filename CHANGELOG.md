@@ -1,4 +1,15 @@
 
+### Phase 23 — AI Assistant (optional)
+
+- `assistant/providers.py` — `AssistantProvider` Protocol + `ChatMessage`/`AssistantResponse`; `DisabledAssistant` (inert default, makes no network call) and `OpenAICompatibleAssistant` (any OpenAI-compatible `/chat/completions` endpoint, user-supplied URL/model/key) built by `build_provider()` (S23.1).
+- `core/config.py` — new `assistant` section (`enabled=false`, `provider=disabled`, `base_url`, `model`, `api_key`, `timeout`, `max_tokens`, `temperature`); `assistant.enabled` must be true before anything is sent (S23.1).
+- `core/http_client.py` — `HttpClient.post_json()` (JSON body + auth headers, raises on 4xx/5xx) powers the provider; `core/exceptions.py` gains `AssistantError` (S23.1).
+- `assistant/prompts.py` — one guardrail system prompt ("use only the supplied evidence… do not invent… say when insufficient… never present AI text as a finding") shared by summarize / explain / compare / next-steps templates that embed the report model (target, risk, findings, raw evidence, timeline) as JSON (S23.2).
+- `assistant/service.py` — `Assistant` facade (`summarize`, `suggest_next_steps`, `explain`, `compare`, `ask`) returning `AssistantAnswer` (text, provider, model, `label="AI-generated"`, warning); disabled/error/empty paths return safe labeled answers (S23.2/S23.3).
+- CLI — `explain <scan>` (`--kind summary|next-steps|finding|compare`, `--finding`, `--compare`, `--json`); disabled by default with a clear stderr notice and exit 1; output prints an AI-generated banner and provider/model line (S23.3).
+- GUI — Assistant page (scan id + kind, Ask, labeled read-only output, disabled banner); provider runs off the UI thread; registered in the sidebar (S23.3).
+- Tests: provider disabled/credential-gating/unknown-provider/parse/empty-content, prompt assembly + guardrail, service disable/error/empty/dispatch, CLI summary/json/finding/compare/disabled/errors, GUI AssistantPage disabled + mocked-provider round-trip (657 passed).
+
 ### Phase 22 — Case Management
 
 - `database/migrations.py` — migration 4 creates `cases` (unique name, status, timestamps), `case_notes`, and `case_evidence` (`scan_id`/`finding_id` → scans/findings `ON DELETE SET NULL`) with per-case/scan indexes (S22.1).

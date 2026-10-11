@@ -137,6 +137,16 @@ DEFAULTS: dict[str, Any] = {
         "feeds_extra": [],
     },
     "api_keys": {},
+    "assistant": {
+        "enabled": False,
+        "provider": "disabled",
+        "base_url": "https://api.openai.com/v1",
+        "model": "gpt-4o-mini",
+        "api_key": "",
+        "timeout": 60.0,
+        "max_tokens": 800,
+        "temperature": 0.0,
+    },
 }
 
 

@@ -65,3 +65,7 @@ class TaskTimeoutError(ScanError):
 
 class ScanCancelledError(ScanError):
     """A scan or task was cancelled."""
+
+
+class AssistantError(IntelXtractError):
+    """The optional AI assistant is disabled or a provider call failed."""

@@ -10,8 +10,10 @@ from typing import Any
 import pytest
 from typer.testing import CliRunner
 
+from assistant.providers import AssistantResponse, ChatMessage
 from cli.main import app
 from core.constants import VERSION
+from core.exceptions import AssistantError
 
 runner = CliRunner()
 
@@ -99,6 +101,7 @@ def test_help_lists_commands(cli_env: Path) -> None:
         "plugin",
         "schedule",
         "case",
+        "explain",
         "doctor",
         "update",
     ):
@@ -562,3 +565,138 @@ def test_update_available_and_current(
     current = runner.invoke(app, ["update"])
     assert current.exit_code == 0
     assert "up to date" in current.stdout
+
+
+# --- explain (optional AI assistant) -----------------------------------------
+
+
+class _FakeProvider:
+    """Enables the CLI assistant path without any network traffic."""
+
+    name = "fake"
+
+    def __init__(
+        self, *, text: str = "Target looks secure.", error: str | None = None
+    ) -> None:
+        self._text = text
+        self._error = error
+        self.calls: list[list[ChatMessage]] = []
+
+    def enabled(self) -> bool:
+        return True
+
+    async def complete(self, messages: list[ChatMessage]) -> AssistantResponse:
+        self.calls.append(messages)
+        if self._error is not None:
+            raise AssistantError(self._error)
+        return AssistantResponse(text=self._text, provider=self.name, model="m-9")
+
+
+@pytest.fixture
+def _fake_assistant(monkeypatch: pytest.MonkeyPatch) -> _FakeProvider:
+    provider = _FakeProvider()
+    monkeypatch.setattr(
+        "assistant.service.build_default_provider",
+        lambda config, http=None: provider,
+    )
+    return provider
+
+
+def _insert_finding(cli_env: Path, scan_id: int, finding_id: int) -> None:
+    con = sqlite3.connect(cli_env / "app.db")
+    try:
+        con.execute(
+            "INSERT INTO findings"
+            " (id, scan_id, module, severity, confidence, data, created_at)"
+            " VALUES (?, ?, 'dns', 'high', 0.8, '{}', '2026-01-01T00:00:00Z')",
+            (finding_id, scan_id),
+        )
+        con.commit()
+    finally:
+        con.close()
+
+
+def test_explain_disabled_by_default(cli_env: Path) -> None:
+    assert runner.invoke(app, ["scan", "example.com"]).exit_code == 0
+    result = runner.invoke(app, ["explain", "1"])
+    assert result.exit_code == 1
+    assert "disabled" in result.stderr
+
+
+def test_explain_summary(cli_env: Path, _fake_assistant: _FakeProvider) -> None:
+    assert runner.invoke(app, ["scan", "example.com"]).exit_code == 0
+    result = runner.invoke(app, ["explain", "1", "--kind", "summary"])
+    assert result.exit_code == 0
+    assert "AI-generated" in result.stdout
+    assert "Target looks secure." in result.stdout
+    assert "not a scan finding" in result.stdout
+    assert _fake_assistant.calls[0][0].role == "system"
+
+
+def test_explain_json(cli_env: Path, _fake_assistant: _FakeProvider) -> None:
+    assert runner.invoke(app, ["scan", "example.com"]).exit_code == 0
+    result = runner.invoke(app, ["explain", "1", "--json"])
+    assert result.exit_code == 0
+    payload: dict[str, Any] = json.loads(result.stdout)
+    assert payload["label"] == "AI-generated"
+    assert payload["text"] == "Target looks secure."
+    assert payload["enabled"] is True
+    assert payload["provider"] == "fake"
+
+
+def test_explain_next_steps(cli_env: Path, _fake_assistant: _FakeProvider) -> None:
+    assert runner.invoke(app, ["scan", "example.com"]).exit_code == 0
+    result = runner.invoke(app, ["explain", "1", "-k", "next-steps"])
+    assert result.exit_code == 0
+    assert "recommend concrete" in _fake_assistant.calls[0][0].content
+
+
+def test_explain_finding(cli_env: Path, _fake_assistant: _FakeProvider) -> None:
+    assert runner.invoke(app, ["scan", "example.com"]).exit_code == 0
+    _insert_finding(cli_env, 1, 1)
+    result = runner.invoke(app, ["explain", "1", "--kind", "finding", "--finding", "1"])
+    assert result.exit_code == 0
+    user_content = _fake_assistant.calls[0][1].content
+    assert "Finding" in user_content
+    assert "Open resolver" in user_content or "dns" in user_content
+
+
+def test_explain_finding_requires_id(
+    cli_env: Path, _fake_assistant: _FakeProvider
+) -> None:
+    assert runner.invoke(app, ["scan", "example.com"]).exit_code == 0
+    result = runner.invoke(app, ["explain", "1", "--kind", "finding"])
+    assert result.exit_code == 1
+    assert "requires --finding" in result.stderr
+
+
+def test_explain_compare(cli_env: Path, _fake_assistant: _FakeProvider) -> None:
+    assert runner.invoke(app, ["scan", "example.com"]).exit_code == 0
+    assert runner.invoke(app, ["scan", "example.com"]).exit_code == 0
+    result = runner.invoke(app, ["explain", "1", "--kind", "compare", "--compare", "2"])
+    assert result.exit_code == 0
+    user_content = _fake_assistant.calls[0][1].content
+    assert "Earlier scan" in user_content
+    assert "Later scan" in user_content
+
+
+def test_explain_compare_requires_ref(
+    cli_env: Path, _fake_assistant: _FakeProvider
+) -> None:
+    assert runner.invoke(app, ["scan", "example.com"]).exit_code == 0
+    result = runner.invoke(app, ["explain", "1", "--kind", "compare"])
+    assert result.exit_code == 1
+    assert "requires --compare" in result.stderr
+
+
+def test_explain_unknown_kind(cli_env: Path, _fake_assistant: _FakeProvider) -> None:
+    assert runner.invoke(app, ["scan", "example.com"]).exit_code == 0
+    result = runner.invoke(app, ["explain", "1", "--kind", "bogus"])
+    assert result.exit_code == 1
+    assert "unknown kind" in result.stderr
+
+
+def test_explain_missing_scan(cli_env: Path, _fake_assistant: _FakeProvider) -> None:
+    result = runner.invoke(app, ["explain", "999"])
+    assert result.exit_code == 1
+    assert "scan not found" in result.stderr

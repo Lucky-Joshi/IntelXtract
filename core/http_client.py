@@ -113,6 +113,27 @@ class HttpClient:
             resp.raise_for_status()
             return await resp.json(content_type=None)
 
+    async def post_json(
+        self,
+        url: str,
+        *,
+        json_body: Any,
+        headers: Mapping[str, str] | None = None,
+        params: Mapping[str, Any] | None = None,
+    ) -> Any:
+        """POST a JSON body and decode the JSON response (raises on 4xx/5xx)."""
+        session = await self._ensure_session()
+        self.metrics.requests += 1
+        try:
+            async with session.post(
+                url, json=json_body, headers=headers, params=params
+            ) as resp:
+                resp.raise_for_status()
+                return await resp.json(content_type=None)
+        except RETRYABLE_NETWORK_ERRORS:
+            self.metrics.failures += 1
+            raise
+
     async def request(
         self,
         method: str,
