@@ -1,3 +1,88 @@
+[project]
+name = "intelxtract"
+version = "0.1.0a0"
+description = "AI-powered OSINT automation & intelligence platform"
+readme = "README.md"
+license = {text = "GPL-3.0-or-later"}
+requires-python = ">=3.13"
+authors = [
+    {name = "IntelXtract Contributors", email = "intelxtract@example.com"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Internet :: Name Service (DNS)",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+keywords = ["osint", "reconnaissance", "intelligence", "dns", "whois", "ssl", "threat-intel"]
+dependencies = [
+    "aiohttp==3.14.4",
+    "aiosqlite==0.22.1",
+    "typer==0.27.2",
+    "rich==15.0.0",
+    "jinja2==3.1.6",
+    "PySide6==6.10.3",
+    "cryptography==50.0.2",
+    "networkx==3.7",
+    "Pillow==12.3.0",
+    "pypdf==6.20.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff==0.16.10",
+    "black==26.10.0",
+    "mypy==2.4.0",
+    "pytest==9.1.1",
+    "pytest-asyncio==1.4.0",
+    "pytest-cov==7.1.0",
+    "pytest-qt==4.4.0",
+]
+build = [
+    "pyinstaller==6.22.3",
+    "build==1.2.2",
+]
+
+[project.entry-points.console_scripts]
+intelxtract = "cli.main:app"
+intelxtract-gui = "gui:main"
+
+[project.urls]
+Homepage = "https://github.com/yourorg/IntelXtract"
+Repository = "https://github.com/yourorg/IntelXtract"
+Issues = "https://github.com/yourorg/IntelXtract/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+    "app*",
+    "assistant*",
+    "cli*",
+    "core*",
+    "database*",
+    "gui*",
+    "modules*",
+    "plugins*",
+    "reports*",
+]
+exclude = [
+    "tests*",
+    "scripts*",
+    "docs*",
+    "exports*",
+    "logs*",
+    "cache*",
+    "config*",
+    "assets*",
+    ".venv*",
+    "build*",
+    "dist*",
+]
+
 [tool.black]
 line-length = 88
 target-version = ["py313"]
@@ -20,8 +105,8 @@ select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "S106", "S107"]  # asserts + fake credentials are expected in tests
-"cli/**" = ["B008"]  # typer/click option defaults are idiomatic
+"tests/**" = ["S101", "S106", "S107"]
+"cli/**" = ["B008"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app", "assistant", "cli", "core", "database", "fakes", "fixtures", "gui", "modules", "plugins", "reports"]
@@ -67,4 +152,11 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     'if __name__ == "__main__":',
     "raise NotImplementedError",
+]
+
+[tool.pyinstaller]
+# Configuration for PyInstaller builds
+spec_files = [
+    "scripts/pyinstaller/intelxtract-cli.spec",
+    "scripts/pyinstaller/intelxtract-gui.spec",
 ]

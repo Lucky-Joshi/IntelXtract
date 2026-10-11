@@ -76,7 +76,7 @@ sub-phases that are small enough to implement and verify independently.
 | 25    | Performance                | I         | M    | [x]    |
 | 26    | Testing                    | I         | L    | [x]    |
 | 27    | Documentation              | I         | M    | [x]    |
-| 28    | Packaging                  | I         | M    | [ ]    |
+| 28    | Packaging                  | I         | M    | [x]    |
 | 29    | Version 1.0 Release        | I         | M    | [ ]    |
 
 Size: S < 1 day · M 1–3 days · L 3–7 days · XL > 7 days.
@@ -746,13 +746,13 @@ only the docs; a developer can add a module without reading engine source.
 
 **Objective:** Distributable builds.
 
-- [ ] S28.1 PyInstaller — spec files for Windows/Linux/macOS, asset bundling,
+- [x] S28.1 PyInstaller — spec files for Windows/Linux/macOS, asset bundling,
       smoke-run of frozen binary
-- [ ] S28.2 Docker — multi-stage `Dockerfile` (headless/CLI image),
+- [x] S28.2 Docker — multi-stage `Dockerfile` (headless/CLI image),
       `docker-compose.yml` with volume for DB/exports
-- [ ] S28.3 PyPI — finalize `[project]` metadata in `pyproject.toml`,
+- [x] S28.3 PyPI — finalize `[project]` metadata in `pyproject.toml`,
       `intelxtract` console script, build/sdist check (optional publish)
-- [ ] S28.4 Build scripts — `scripts/build_*.{sh,ps1}`, artifact checksums
+- [x] S28.4 Build scripts — `scripts/build_*.{sh,ps1}`, artifact checksums
 
 **Done criteria:** Frozen binary runs a scan; Docker image builds and scans;
 `python -m build` succeeds.

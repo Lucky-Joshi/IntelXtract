@@ -7,16 +7,22 @@ future migrations to :data:`MIGRATIONS` — never edit an applied one.
 
 from __future__ import annotations
 
+import importlib.resources as resources
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from pathlib import Path
 
 from core.exceptions import DatabaseError, MigrationError
 from database.connection import Database
 
-PACKAGE_DIR = Path(__file__).resolve().parent
-SCHEMA_FILE = PACKAGE_DIR / "schema.sql"
+
+def _load_initial_sql() -> str:
+    """Load schema.sql using importlib.resources (works in PyInstaller)."""
+    try:
+        return resources.read_text("database", "schema.sql", encoding="utf-8")
+    except (OSError, ImportError) as exc:
+        raise MigrationError(f"cannot read database/schema.sql: {exc}") from exc
+
 
 _BOOTSTRAP_SQL = """
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -34,13 +40,6 @@ class Migration:
     version: int
     name: str
     sql: str
-
-
-def _load_initial_sql() -> str:
-    try:
-        return SCHEMA_FILE.read_text(encoding="utf-8")
-    except OSError as exc:
-        raise MigrationError(f"cannot read {SCHEMA_FILE}: {exc}") from exc
 
 
 _MIGRATION_2_SQL = """

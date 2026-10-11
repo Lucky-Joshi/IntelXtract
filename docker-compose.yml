@@ -1,0 +1,140 @@
+version: "3.9"
+
+# IntelXtract docker-compose.yml
+#
+# Usage:
+#   docker-compose up -d intelxtract       # Run CLI scan (one-shot)
+#   docker-compose run --rm intelxtract scan example.com --mode deep
+#   docker-compose up -d intelxtract-gui   # Run GUI (requires X11/Wayland forwarding)
+#
+# Volumes:
+#   - intelxtract-data: SQLite database, exports, logs, cache
+#   - intelxtract-config: User configuration (optional)
+#   - ./plugins:/app/plugins:ro: Plugin directory (read-only)
+#   - ./assets:/app/assets:ro: Assets (logo, icons)
+#   - ./templates:/app/templates:ro: Report templates
+
+services:
+  # Headless CLI service (default)
+  intelxtract:
+    build:
+      context: .
+      target: runtime
+      dockerfile: Dockerfile
+    image: intelxtract:latest
+    container_name: intelxtract-cli
+    user: "1000:1000"
+    volumes:
+      - intelxtract-data:/data
+      - intelxtract-config:/home/intelxtract/.config/intelxtract
+      - ./plugins:/app/plugins:ro
+      - ./assets:/app/assets:ro
+      - ./templates:/app/templates:ro
+    environment:
+      - INTELXTRACT_DB_PATH=/data/intelxtract.db
+      - INTELXTRACT_EXPORT_DIR=/data/exports
+      - INTELXTRACT_LOG_DIR=/data/logs
+      - INTELXTRACT_CACHE_DIR=/data/cache
+      - INTELXTRACT_LOG_LEVEL=INFO
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    # Run a single scan and exit (override command)
+    # command: scan example.com --mode deep --json
+    # Default: show help
+    command: --help
+    restart: "no"
+
+  # GUI service (requires display forwarding)
+  intelxtract-gui:
+    build:
+      context: .
+      target: gui
+      dockerfile: Dockerfile
+    image: intelxtract-gui:latest
+    container_name: intelxtract-gui
+    user: "1000:1000"
+    volumes:
+      - intelxtract-data:/data
+      - intelxtract-config:/home/intelxtract/.config/intelxtract
+      - ./plugins:/app/plugins:ro
+      - ./assets:/app/assets:ro
+      - ./templates:/app/templates:ro
+      # X11 socket for GUI display (Linux)
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+      # Wayland socket (optional)
+      - ${XDG_RUNTIME_DIR:-/tmp}/wayland-0:/tmp/wayland-0:ro
+    environment:
+      - INTELXTRACT_DB_PATH=/data/intelxtract.db
+      - INTELXTRACT_EXPORT_DIR=/data/exports
+      - INTELXTRACT_LOG_DIR=/data/logs
+      - INTELXTRACT_CACHE_DIR=/data/cache
+      - INTELXTRACT_LOG_LEVEL=INFO
+      - DISPLAY=${DISPLAY:-:0}
+      - WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-0}
+      - XDG_RUNTIME_DIR=/tmp
+      - QT_QPA_PLATFORM=xcb
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 3G
+        reservations:
+          cpus: "0.5"
+          memory: 1G
+    # GUI runs interactively
+    stdin_open: true
+    tty: true
+    restart: "no"
+
+  # Scheduler service (background recurring scans)
+  intelxtract-scheduler:
+    build:
+      context: .
+      target: runtime
+      dockerfile: Dockerfile
+    image: intelxtract:latest
+    container_name: intelxtract-scheduler
+    user: "1000:1000"
+    volumes:
+      - intelxtract-data:/data
+      - intelxtract-config:/home/intelxtract/.config/intelxtract
+      - ./plugins:/app/plugins:ro
+      - ./assets:/app/assets:ro
+      - ./templates:/app/templates:ro
+    environment:
+      - INTELXTRACT_DB_PATH=/data/intelxtract.db
+      - INTELXTRACT_EXPORT_DIR=/data/exports
+      - INTELXTRACT_LOG_DIR=/data/logs
+      - INTELXTRACT_CACHE_DIR=/data/cache
+      - INTELXTRACT_LOG_LEVEL=INFO
+    # Run scheduler daemon
+    command: serve
+    restart: "unless-stopped"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+
+volumes:
+  intelxtract-data:
+    driver: local
+    name: intelxtract-data
+  intelxtract-config:
+    driver: local
+    name: intelxtract-config
+
+networks:
+  default:
+    name: intelxtract-network

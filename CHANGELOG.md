@@ -1,4 +1,13 @@
 
+### Phase 28 — Packaging
+
+- PyPI metadata: `pyproject.toml` gains full `[project]` table (name, version, description, dependencies, entry points, classifiers, URLs) with SPDX license and `project.entry-points.console_scripts` for `intelxtract` and `intelxtract-gui`; `tool.setuptools.packages.find` configured for flat-layout package discovery (S28.3).
+- `python -m build --wheel --sdist` succeeds producing `intelxtract-0.1.0a0-py3-none-any.whl` and `intelxtract-0.1.0a0.tar.gz`; editable install works and CLI entry points resolve (S28.3).
+- PyInstaller spec files: `scripts/pyinstaller/intelxtract-cli.spec` and `intelxtract-gui.spec` with comprehensive hidden imports, data bundling (assets, templates, schema.sql, plugins), UPX compression, and platform-appropriate excludes; CLI binary builds and smoke-tests (`intelxtract scan example.com --mode quick --format json` completes in ~0.3s) (S28.1).
+- Docker: multi-stage `Dockerfile` with builder/runtime/gui targets; `runtime` target is minimal headless CLI (~150MB); `gui` target adds Qt6 dependencies; `docker-compose.yml` defines `intelxtract`, `intelxtract-gui`, and `intelxtract-scheduler` services with named volumes for data/config/plugins (S28.2).
+- Build scripts: `scripts/build.sh` (Linux/macOS) and `scripts/build.ps1` (Windows) support `--clean`, `--cli-only`, `--gui-only`, `--wheel`, `--docker`, `--verbose`; generate `CHECKSUMS.sha256` and `CHECKSUMS.sha512` for all artifacts (S28.4).
+- `database/migrations.py` uses `importlib.resources.read_text` for schema.sql so it works in both source and PyInstaller-frozen environments.
+
 ### Phase 27 — Documentation
 
 - Architecture reconciled: `docs/architecture.md` rewritten as single source of truth (supersedes `internal_architecture.md` and `Scan_Engine_Workflow.md`) with complete system diagram, component descriptions, data flow, and design principles (S27.1).
