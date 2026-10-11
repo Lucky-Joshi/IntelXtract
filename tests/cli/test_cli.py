@@ -746,3 +746,74 @@ def test_explain_missing_scan(cli_env: Path, _fake_assistant: _FakeProvider) -> 
     result = runner.invoke(app, ["explain", "999"])
     assert result.exit_code == 1
     assert "scan not found" in result.stderr
+
+
+# --- S26.4: full command matrix -------------------------------------------------
+
+
+COMMAND_MATRIX: list[tuple[str, ...]] = [
+    ("scan",),
+    ("report",),
+    ("explain",),
+    ("doctor",),
+    ("update",),
+    ("history", "show"),
+    ("config", "set"),
+    ("config", "get"),
+    ("config", "list"),
+    ("config", "path"),
+    ("plugin", "list"),
+    ("plugin", "info"),
+    ("plugin", "enable"),
+    ("plugin", "disable"),
+    ("schedule", "add"),
+    ("schedule", "list"),
+    ("schedule", "remove"),
+    ("schedule", "enable"),
+    ("schedule", "disable"),
+    ("schedule", "run"),
+    ("case", "create"),
+    ("case", "list"),
+    ("case", "show"),
+    ("case", "note"),
+    ("case", "attach"),
+    ("case", "export"),
+    ("key", "list"),
+    ("key", "set"),
+    ("key", "get"),
+    ("key", "delete"),
+]
+
+
+@pytest.mark.parametrize("command", COMMAND_MATRIX)
+def test_every_command_parses_and_help_runs(
+    cli_env: Path, command: tuple[str, ...]
+) -> None:
+    result = runner.invoke(app, [*command, "--help"])
+    assert result.exit_code == 0, f"{command}: {result.stdout}\n{result.exception}"
+    assert command[-1] in result.stdout
+
+
+def test_command_matrix_matches_registry(cli_env: Path) -> None:
+    from cli.main import (
+        case_app,
+        config_app,
+        history_app,
+        key_app,
+        plugin_app,
+        schedule_app,
+    )
+
+    def names(group: Any) -> set[str]:
+        return {c.name or c.callback.__name__ for c in group.registered_commands}
+
+    assert names(app) == {"scan", "report", "explain", "doctor", "update"}
+    assert names(history_app) == {"show"}
+    assert names(config_app) == {"get", "set", "list", "path"}
+    assert names(plugin_app) == {"list", "info", "enable", "disable"}
+    assert names(schedule_app) == {"add", "list", "remove", "enable", "disable", "run"}
+    assert names(case_app) == {"create", "list", "show", "note", "attach", "export"}
+    assert names(key_app) == {"list", "set", "get", "delete"}
+
+    registered = {clic.name for clic in app.registered_groups}
+    assert registered == {"history", "config", "plugin", "schedule", "case", "key"}

@@ -73,7 +73,14 @@ uv pip install -r requirements.txt -r requirements-dev.txt
 
 # verification gate — must pass before any phase is complete
 ruff check . && black --check . && mypy . && pytest
+
+# tests with the coverage floor enforced (core/modules/reports/plugins)
+pytest -m "not integration" --cov --cov-report=term
 ```
+
+The suite is fully offline: integration tests drive a real scan pipeline
+against an in-process loopback mock server, so no external network is
+required.
 
 End-user installation and the `intelxtract` CLI arrive with Phase 4;
 packaging with Phase 28.

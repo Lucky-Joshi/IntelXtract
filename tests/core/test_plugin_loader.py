@@ -45,6 +45,22 @@ BROKEN_PLUGIN = """
 raise RuntimeError("plugin explodes on import")
 """
 
+SYNTAX_PLUGIN = """
+def unclosed(:
+    return 1
+"""
+
+NO_RUN_PLUGIN = """
+from core.plugin_loader import PluginBase
+
+
+class Silent(PluginBase):
+    name = "silent"
+
+    async def run(self, target, ctx):
+        return None
+"""
+
 NO_CLASS_PLUGIN = """
 x = 42
 """
@@ -111,6 +127,27 @@ def test_import_error_is_fail_soft(tmp_path: Path) -> None:
     assert infos[0].error is not None
     assert "explodes" in infos[0].error
     assert registry.runnable() == []
+
+
+def test_syntax_error_is_fail_soft(tmp_path: Path) -> None:
+    _write_plugin(tmp_path, "syntax", SYNTAX_PLUGIN)
+    registry = PluginRegistry(tmp_path)
+    infos = registry.discover()
+    assert len(infos) == 1
+    assert infos[0].error is not None
+    assert "import failed" in infos[0].error
+    assert registry.runnable() == []
+
+
+async def test_adapter_normalizes_none_result(tmp_path: Path) -> None:
+    _write_plugin(tmp_path, "silent", NO_RUN_PLUGIN)
+    registry = PluginRegistry(tmp_path)
+    registry.discover()
+    adapter = registry.engine_modules()[0]
+    result = await adapter.run("example.com", None)
+    assert isinstance(result, ModuleResult)
+    assert result.data == {"result": None}
+    assert result.findings == ()
 
 
 def test_missing_plugin_class_is_fail_soft(tmp_path: Path) -> None:

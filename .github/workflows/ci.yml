@@ -43,5 +43,5 @@ jobs:
       - name: Mypy
         run: mypy .
 
-      - name: Pytest
-        run: pytest -m "not integration"
+      - name: Pytest (offline suite + coverage gate)
+        run: pytest -m "not integration" --cov --cov-report=term --cov-report=html:htmlcov

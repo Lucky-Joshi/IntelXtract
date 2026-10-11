@@ -74,7 +74,7 @@ sub-phases that are small enough to implement and verify independently.
 | 23    | AI Assistant (optional)    | H         | S    | [x]    |
 | 24    | Settings                   | I         | M    | [x]    |
 | 25    | Performance                | I         | M    | [x]    |
-| 26    | Testing                    | I         | L    | [ ]    |
+| 26    | Testing                    | I         | L    | [x]    |
 | 27    | Documentation              | I         | M    | [ ]    |
 | 28    | Packaging                  | I         | M    | [ ]    |
 | 29    | Version 1.0 Release        | I         | M    | [ ]    |
@@ -699,18 +699,18 @@ task probe test); benchmarks reproducible; no unbounded concurrency.
 
 **Objective:** Systematic coverage across all layers.
 
-- [ ] S26.1 Coverage tooling — `pytest-cov`, coverage config, CI report
-- [ ] S26.2 Unit coverage push — target ≥ 80% on `core/`, `modules/`,
+- [x] S26.1 Coverage tooling — `pytest-cov`, coverage config, CI report
+- [x] S26.2 Unit coverage push — target ≥ 80% on `core/`, `modules/`,
       `reports/`
-- [ ] S26.3 Integration tests — end-to-end scan against a local mock HTTP
+- [x] S26.3 Integration tests — end-to-end scan against a local mock HTTP
       server (no external network in CI)
-- [ ] S26.4 CLI tests — full command matrix via `CliRunner`
-- [ ] S26.5 GUI tests — pytest-qt offscreen: page navigation, scan start,
+- [x] S26.4 CLI tests — full command matrix via `CliRunner`
+- [x] S26.5 GUI tests — pytest-qt offscreen: page navigation, scan start,
       result display
-- [ ] S26.6 DB & plugin tests — migration from every released schema version;
+- [x] S26.6 DB & plugin tests — migration from every released schema version;
       plugin load failure modes
-- [ ] S26.7 Performance tests — budget assertions on cache/dedupe paths
-- [ ] S26.8 CI gate — coverage threshold enforced in GitHub Actions
+- [x] S26.7 Performance tests — budget assertions on cache/dedupe paths
+- [x] S26.8 CI gate — coverage threshold enforced in GitHub Actions
 
 **Done criteria:** CI enforces lint + types + tests + coverage floor; suite
 runs offline in < 2 minutes.

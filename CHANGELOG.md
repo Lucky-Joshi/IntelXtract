@@ -1,4 +1,14 @@
 
+### Phase 26 — Testing
+
+- Coverage tooling: `pytest-cov` + `pytest-qt` added to `requirements-dev.txt`; `pyproject.toml` gains `[tool.coverage.run]` (branch coverage over `core`/`modules`/`reports`/`plugins`) and `[tool.coverage.report]` (`fail_under = 80`, missing lines, standard exclusions); CI now runs `pytest -m "not integration" --cov --cov-report=term --cov-report=html:htmlcov` so the coverage floor is enforced on every push (S26.1/S26.8).
+- Unit coverage is **89.5%** overall (756 tests, branch coverage) — comfortably above the 80% floor, with the whole offline suite running in ~9s locally (S26.2).
+- `tests/integration/test_offline_scan.py` (new) — end-to-end scans (`ScanEngine` → shared `HttpClient` → real aiohttp transport → domain/IP collectors) against an in-process loopback mock serving DoH-JSON, RDAP, crt.sh, and ip-api shapes; asserts module success, parsed findings, and persistence through the DB sink, with no external network (S26.3).
+- `tests/cli/test_cli.py` — full command matrix: every top-level command and nested subcommand (`history`/`config`/`plugin`/`schedule`/`case`/`key`) is registered and its `--help` exits 0, plus a registry-completeness check that guards against forgotten registrations (S26.4).
+- `tests/gui/test_qtbot.py` (new) — `pytest-qt` (`qtbot`) offscreen tests for sidebar page navigation and a quick-scan start that renders into the results page; the existing session-scoped offscreen `qapp` fixture continues to back `qtbot` (S26.5).
+- `tests/database/test_migrations.py` — upgrade from **every released schema version** (v1→v4, v2→v4, v3→v4) with data-preservation assertions, plus idempotent re-upgrade over a head database; `tests/core/test_plugin_loader.py` gains syntax-error and `None`-result adapter failure-mode coverage (S26.6).
+- `tests/core/test_performance_budget.py` (new) — generous wall-clock budget assertions on the warm cache path (200k ops), the scan+dedupe pipeline (300 scans), and `ctx.cached` memoization (S26.7).
+
 ### Phase 25 — Performance
 
 - `core/http_client.py` — one lazily-created keep-alive `aiohttp.TCPConnector` per client with total/per-host connection caps and a DNS cache (`network.pool_limit`, `network.pool_limit_per_host`), closed on `aclose()` (S25.1).
