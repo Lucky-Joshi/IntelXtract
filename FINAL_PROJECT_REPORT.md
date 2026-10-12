@@ -384,7 +384,25 @@ The project set the following measurable objectives:
 10. **Quality.** Achieve ≥80% branch coverage with a passing quality gate (`ruff`, `black`, `mypy`, `pytest`) and fully offline integration tests.
 11. **Packaged release.** Package via PyInstaller (Linux x86_64 release binaries), Docker, and PyPI, driven by CI/CD, for cross-platform Python (Linux, macOS, Windows).
 
-Each objective maps to concrete evidence in later chapters.
+---
+
+## 73.1 Requirement Fulfilment Matrix
+
+**Table 73.1 – Requirement Fulfilment Matrix**
+
+| Objective | Requirement | Fulfilled in | Evidence |
+|-----------|-------------|--------------|----------|
+| 1 | Multi-type passive collection (6 supported target types; HASH classified) | Ch. 28, 38–46 | Tables 38.1, 28.1–28.2; module listings; registry discovery (19 modules) |
+| 2 | Unified async orchestration | Ch. 27, 29, 30 | `core/engine.py`, `core/scheduler.py`, `core/worker_pool.py` |
+| 3 | Entity correlation graph | Ch. 47–48 | 8 edge types; NetworkX MultiDiGraph; Figs 47.1–47.2 |
+| 4 | Deterministic explainable risk scoring | Ch. 49–51 | 22 rules; category ceilings; rating bands |
+| 5 | Dual CLI and GUI | Ch. 54–56 | Typer CLI; PySide6 GUI |
+| 6 | Local persistence with provenance | Ch. 35–37 | Migrations v1–v4; repositories; audit logs |
+| 7 | Reproducible 5-format reporting | Ch. 52–53 | JSON/CSV/MD/HTML/PDF; Jinja2; WeasyPrint fallback |
+| 8 | Extensible Plugin SDK | Ch. 59 | Manifest-gated plugin loader; PluginBase; adapters |
+| 9 | Security & privacy | Ch. 60, 63–64 | Fernet vault; redaction; threat model; privacy statement |
+| 10 | Quality ≥80% | Ch. 65–66 | 756 tests, 89.54% branch coverage; quality gate |
+| 11 | Packaged release (Python cross-platform) | Ch. 68–69 | Wheel/sdist, Linux x86_64 binaries, Docker, CI/CD |
 
 ---
 
